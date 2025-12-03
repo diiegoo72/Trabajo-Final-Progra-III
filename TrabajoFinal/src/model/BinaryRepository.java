@@ -8,9 +8,11 @@ import java.util.ArrayList;
 
 public class BinaryRepository implements IRepository {
 
-    Path ruta = java.nio.file.Paths.get(System.getProperty("user.home"), "Desktop", "questions.bin");
+    // Ruta del archivo binario en el directorio del usuario
+    private Path ruta = java.nio.file.Paths.get(System.getProperty("user.home"), "questions.bin");
 
-        private boolean savePreguntas(ArrayList<Question> preguntas) {
+    // Método privado para guardar la lista de preguntas en el archivo binario
+    private boolean savePreguntas(ArrayList<Question> preguntas) {
         java.io.ObjectOutputStream oos = null;
         try {
             oos = new java.io.ObjectOutputStream(Files.newOutputStream(ruta));
@@ -62,18 +64,28 @@ public class BinaryRepository implements IRepository {
         }
     }
 
-        /// TAMAAAAALLLLLLLLLLLLLLLLLLLLLLLL
     @Override
-    public Question modifyQuestion(Question q) {
-        return null;
+    public void modifyQuestion(Question q) {
+        ArrayList<Question> preguntas = getAllQuestions();
+        for (int i = 0; i < preguntas.size(); i++) {
+            if (preguntas.get(i).getId().equals(q.getId())) {
+                preguntas.set(i, q);
+                break;
+            }
+        }
+        savePreguntas(preguntas);
     }
 
     @Override
     public void removeQuestion(Question q) {
-        
+        ArrayList<Question> preguntas = getAllQuestions();
+        for (int i = 0; i < preguntas.size(); i++) {
+            if (preguntas.get(i).getId().equals(q.getId())) {
+                preguntas.remove(i);
+                break;
+            }
+        }
+        savePreguntas(preguntas);
     }
 
-    
-
-    
 }

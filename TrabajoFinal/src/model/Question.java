@@ -31,6 +31,10 @@ public class Question implements Serializable {
     }
 
     
+    // Getters y Setters
+    public UUID getId() {
+        return id;
+    }
 
     public void setId(UUID id) {
         this.id = id;
@@ -95,12 +99,6 @@ public class Question implements Serializable {
     public void setOptions(List<Option> options) {
         this.options = options;
     }
-
-
-
-    public Object getId() {
-        return id;
-    }    
 
     
 }

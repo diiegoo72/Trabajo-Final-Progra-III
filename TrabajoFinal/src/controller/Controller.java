@@ -6,6 +6,7 @@ import java.util.List;
 import model.Model;
 import model.Option;
 import model.Question;
+import model.RepositoryException;
 import view.BaseView;
 
 public class Controller {
@@ -38,12 +39,20 @@ public class Controller {
     }
 
     // Método para agregar una pregunta desde la vista
-    public void addQuestion(Question question) {
+    public void addQuestion(Question question) throws RepositoryException {
         model.addQuestion(question);
     }
 
     // Método para obtener todas las preguntas
-    public List<Question> getAllQuestions() {
+    public List<Question> getAllQuestions() throws RepositoryException {
         return model.getAllQuestions();
+    }
+
+    public void modifyQuestion(Question p) throws RepositoryException {
+        model.modifyQuestion(p);
+    }
+
+    public void removeQuestion(Question p) throws RepositoryException {
+        model.removeQuestion(p);
     }
 }

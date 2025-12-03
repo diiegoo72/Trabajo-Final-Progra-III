@@ -26,14 +26,21 @@ public class Model {
     }
 
     // Método para agregar una pregunta al repositorio
-    public void addQuestion(Question question) {
+    public void addQuestion(Question question) throws RepositoryException {
         repository.addQuestion(question);
     }
 
     // Método para obtener todas las preguntas del repositorio
-    public List<Question> getAllQuestions() {
+    public List<Question> getAllQuestions() throws RepositoryException  {
         return repository.getAllQuestions();
     }
 
+    public void modifyQuestion(Question p) throws RepositoryException {
+        repository.modifyQuestion(p);
+    }
+
+    public void removeQuestion(Question p) throws RepositoryException {
+        repository.removeQuestion(p);
+    }
 
 }
