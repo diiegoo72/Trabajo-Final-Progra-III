@@ -1,12 +1,11 @@
 package controller;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
 
+import java.util.List;
 import model.Model;
 import model.Option;
 import model.Question;
 import model.RepositoryException;
+import model.QuestionBackupIOException;
 import view.BaseView;
 
 public class Controller {
@@ -54,5 +53,9 @@ public class Controller {
 
     public void removeQuestion(Question p) throws RepositoryException {
         model.removeQuestion(p);
+    }
+
+    public void exportQuestions(String archivo) throws QuestionBackupIOException, RepositoryException {
+        model.exportQuestions(archivo);
     }
 }

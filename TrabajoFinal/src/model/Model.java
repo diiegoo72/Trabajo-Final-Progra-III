@@ -10,8 +10,9 @@ public class Model {
     private ArrayList<QuestionCreator> questionCreators;
 
     // falta constructor
-    public Model(IRepository repository) {
+    public Model(IRepository repository, QuestionBackupIO backupHandler) {
         this.repository = repository;
+        this.backupHandler = backupHandler;
     }
 
     // Método para crear opciones
@@ -41,6 +42,11 @@ public class Model {
 
     public void removeQuestion(Question p) throws RepositoryException {
         repository.removeQuestion(p);
+    }
+
+    public void exportQuestions(String archivo) throws QuestionBackupIOException, RepositoryException {
+        List<Question> preguntas = getAllQuestions();
+        backupHandler.exportQuestions(preguntas, archivo);
     }
 
 }

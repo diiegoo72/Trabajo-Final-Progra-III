@@ -1,6 +1,5 @@
 package model;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +12,6 @@ public class Question implements Serializable {
     // Atributos
     private UUID id;
     private String author;
-    private LocalDate date;
     private HashSet<String> topics;
     private String statement;
     private List<Option> options;
@@ -24,7 +22,6 @@ public class Question implements Serializable {
             List<Option> options) {
         this.id = UUID.randomUUID();
         this.author = author;
-        this.date = LocalDate.now();
         this.topics = topics;
         this.statement = statement;
         this.options = options;
@@ -51,19 +48,6 @@ public class Question implements Serializable {
     public void setAuthor(String author) {
         this.author = author;
     }
-
-
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
 
 
     public HashSet<String> getTopics() {

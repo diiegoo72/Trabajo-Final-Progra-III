@@ -4,11 +4,10 @@ import java.util.List;
 
 public interface QuestionBackupIO {
 
-    public void exportQuestions(List<Question> questions);
+    public void exportQuestions(List<Question> questions, String archivo) throws QuestionBackupIOException;
 
-    public List<Question> importQuestions();
+    public List<Question> importQuestions() throws QuestionBackupIOException;
 
-    public String getBackupIODescription();
-    
+    public String getBackupIODescription() throws QuestionBackupIOException;
     
 }

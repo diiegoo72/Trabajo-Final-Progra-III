@@ -1,21 +1,24 @@
 package model;
 
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 
 public class BinaryRepository implements IRepository {
 
     // Ruta del archivo binario en el directorio del usuario
-    private Path ruta = java.nio.file.Paths.get(System.getProperty("user.home"), "questions.bin");
+    private Path ruta = Paths.get(System.getProperty("user.home"), "questions.bin");
 
     // Método privado para guardar la lista de preguntas en el archivo binario
     private boolean savePreguntas(ArrayList<Question> preguntas) {
-        java.io.ObjectOutputStream oos = null;
+        ObjectOutputStream oos = null;
         try {
-            oos = new java.io.ObjectOutputStream(Files.newOutputStream(ruta));
+            oos = new ObjectOutputStream(Files.newOutputStream(ruta));
             oos.writeObject(preguntas);
             return true;
         } catch (java.io.IOException e) {
@@ -46,9 +49,9 @@ public class BinaryRepository implements IRepository {
         if (!Files.exists(ruta)) {
             return new ArrayList<>();
         }
-        java.io.ObjectInputStream ois = null;
+        ObjectInputStream ois = null;
         try {
-            ois = new java.io.ObjectInputStream(java.nio.file.Files.newInputStream(ruta));
+            ois = new ObjectInputStream(Files.newInputStream(ruta));
             return (ArrayList<Question>) ois.readObject();
         } catch (java.io.IOException | ClassNotFoundException e) {
             e.printStackTrace();

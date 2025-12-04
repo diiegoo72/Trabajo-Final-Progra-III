@@ -12,6 +12,7 @@ import java.util.List;
 
 import model.Option;
 import model.Question;
+import model.QuestionBackupIOException;
 import model.RepositoryException;
 
 public class InteractiveView extends BaseView {
@@ -58,6 +59,48 @@ public class InteractiveView extends BaseView {
                 case "1":
                     showMessage("CRUD de Preguntas seleccionado.");
                     mostrarMenuCRUD();
+                    break;
+                case "2":
+                    showMessage("Exportación/Importación de Preguntas seleccionado.");
+                    mostrarMenuImpExp();
+                    waitForUserInput();
+                    break;
+                default:
+                    showErrorMessage("Opción no válida. Intente de nuevo.");
+            }
+        }
+    }
+
+    private void mostrarMenuImpExp() {
+        boolean salir = false;
+        while (!salir) {
+            vaciarPantalla();
+            showMessage("\n--- EXPORTACIÓN/IMPORTACIÓN DE PREGUNTAS ---");
+            showMessage("1) Exportar preguntas a un JSON");
+            showMessage("2) Importar preguntas desde un JSON");
+            showMessage("3) Volver al menú principal");
+            String opcion = readString_ne("Seleccione una opción: ");
+
+            switch (opcion) {
+                case "1":
+                    showMessage("Exportar preguntas a un JSON seleccionado.");
+                    String archivo = readString_ne("Ingrese el nombre del archivo de destino (con .json): ");
+                    try {
+                        controller.exportQuestions(archivo);
+                    } catch (QuestionBackupIOException e) {
+                        e.printStackTrace();
+                    } catch (RepositoryException e) {
+                        e.printStackTrace();
+                    }
+                    waitForUserInput();
+                    break;
+                case "2":
+                    showMessage("Importar preguntas seleccionado.");
+                    // Lógica para importar preguntas
+                    waitForUserInput();
+                    break;
+                case "3":
+                    salir = true;
                     break;
                 default:
                     showErrorMessage("Opción no válida. Intente de nuevo.");
@@ -190,7 +233,7 @@ public class InteractiveView extends BaseView {
         boolean salir = false;
         while (!salir) {
             showMessage("\n--- MODIFICAR PREGUNTA ---");
-            showMessage("1) Modificar autor");
+            showMessage("1) Modificar autor"); 
             showMessage("2) Modificar enunciado");
             showMessage("3) Modificar temas");
             showMessage("4) Modificar opciones");
@@ -202,7 +245,7 @@ public class InteractiveView extends BaseView {
                 case "1":
                     showMessage("Modificar autor seleccionado.");
                     String nuevoAutor = readString_ne("Ingrese el nuevo autor: ");
-                    p.setAuthor(nuevoAutor);
+                    p.setAuthor(nuevoAutor); //MIRAR Q ESTA MAL, hay q hacer funcion en model, o en 
                     showMessage("¡Autor modificado correctamente!");
                     waitForUserInput();
                     break;
@@ -345,10 +388,9 @@ public class InteractiveView extends BaseView {
                 showMessage("No hay preguntas disponibles.");
                 return;
             }
-            ArrayList<Question> preguntasOrdenadas = new ArrayList<>(preguntas);
-            preguntasOrdenadas.sort((q1, q2) -> q1.getDate().compareTo(q2.getDate()));
-            for (int i = 0; i < preguntasOrdenadas.size(); i++) {
-                mostrarPregunta(preguntasOrdenadas.get(i), i + 1);
+            // Mostrar en el orden que tienen en el ArrayList (sin reordenar)
+            for (int i = 0; i < preguntas.size(); i++) {
+                mostrarPregunta(preguntas.get(i), i + 1);
             }
         } catch (RepositoryException e) {
             showErrorMessage(e.getMessage());
@@ -357,9 +399,7 @@ public class InteractiveView extends BaseView {
 
     private void mostrarPregunta(Question q, int index) {
         showMessage("\nPregunta " + index);
-        showMessage("ID: " + q.getId());
         showMessage("Autor: " + q.getAuthor());
-        showMessage("Fecha de Creación: " + q.getDate());
         showMessage("Temas: " + String.join(", ", q.getTopics()));
         showMessage("Enunciado: " + q.getStatement());
         showMessage("Opciones:");
@@ -367,7 +407,7 @@ public class InteractiveView extends BaseView {
         for (int i = 0; i < opts.size(); i++) {
             Option option = opts.get(i);
             char letter = (char) ('A' + i);
-            showMessage((i + 1) + ") (" + letter + ") " + option.getText() + (option.isCorrect() ? " (Correcta)" : ""));
+            showMessage((letter + ") " + option.getText() + (option.isCorrect() ? " (Correcta)" : "")));
         }
     }
 
