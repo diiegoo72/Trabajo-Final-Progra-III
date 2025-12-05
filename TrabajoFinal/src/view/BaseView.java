@@ -1,5 +1,7 @@
 package view;
+
 import controller.Controller;
+
 
 public abstract class BaseView {
     // Atributos comunes

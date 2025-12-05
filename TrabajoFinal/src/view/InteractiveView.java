@@ -4,8 +4,6 @@ import static com.coti.tools.Esdia.readInt;
 import static com.coti.tools.Esdia.readString_ne;
 import static com.coti.tools.Esdia.readString;
 
-
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +23,9 @@ public class InteractiveView extends BaseView {
     // Método para iniciar la vista interactiva
     @Override
     public void init() {
-        showMessage("BIENVENIDO A EXAMINATOR 3000");
-
+        waitForUserInput();
+        vaciarPantalla();
+        // Mostrar el menú principal
         mostrarMenuPrincipal();
     }
 
@@ -46,7 +45,6 @@ public class InteractiveView extends BaseView {
     private void mostrarMenuPrincipal() {
         boolean salir = false;
         while (!salir) {
-            vaciarPantalla();
             showMessage("\n--- MENU PRINCIPAL ---");
             showMessage("1) CRUD de Preguntas");
             showMessage("2) Exportación/Importación de Preguntas");
@@ -57,11 +55,9 @@ public class InteractiveView extends BaseView {
 
             switch (opcion) {
                 case "1":
-                    showMessage("CRUD de Preguntas seleccionado.");
                     mostrarMenuCRUD();
                     break;
                 case "2":
-                    showMessage("Exportación/Importación de Preguntas seleccionado.");
                     mostrarMenuImpExp();
                     waitForUserInput();
                     break;
@@ -83,19 +79,20 @@ public class InteractiveView extends BaseView {
 
             switch (opcion) {
                 case "1":
-                    showMessage("Exportar preguntas a un JSON seleccionado.");
                     String archivo = readString_ne("Ingrese el nombre del archivo de destino (con .json): ");
                     try {
                         controller.exportQuestions(archivo);
                     } catch (QuestionBackupIOException e) {
+                        showErrorMessage("Error al exportar preguntas: " + e.getMessage());
                         e.printStackTrace();
+
                     } catch (RepositoryException e) {
+                        showErrorMessage("Error en el repositorio: " + e.getMessage());
                         e.printStackTrace();
                     }
                     waitForUserInput();
                     break;
                 case "2":
-                    showMessage("Importar preguntas seleccionado.");
                     // Lógica para importar preguntas
                     waitForUserInput();
                     break;
@@ -122,15 +119,12 @@ public class InteractiveView extends BaseView {
 
             switch (opcion) {
                 case "1":
-                    showMessage("Crear nueva pregunta seleccionado.");
                     crearNuevaPregunta();
                     break;
                 case "2":
-                    showMessage("Listar preguntas existente seleccionado.");
                     mostrarMenuListarPreguntas();
                     break;
                 case "3":
-                    showMessage("Ver detalles de una pregunta seleccionado.");
                     listarPreguntasEnOrdenDeFecha();
                     mostrarDetallesPregunta();
                     break;
@@ -177,7 +171,7 @@ public class InteractiveView extends BaseView {
     private void mostrarDetallesPregunta() {
         int index = readInt("Ingrese el número de la pregunta para ver sus detalles: ");
         try {
-            List<Question> preguntas = controller.getAllQuestions();
+            ArrayList<Question> preguntas = controller.getAllQuestions();
             if (index < 1 || index > preguntas.size()) {
                 showErrorMessage("Número de pregunta inválido.");
                 waitForUserInput();
@@ -187,6 +181,7 @@ public class InteractiveView extends BaseView {
                 mostrarMenuDetallesPregunta(preguntas.get(index - 1));
             }
         } catch (RepositoryException e) {
+            e.printStackTrace();
             showErrorMessage(e.getMessage());
         }
     }
@@ -202,14 +197,10 @@ public class InteractiveView extends BaseView {
 
             switch (opcion) {
                 case "1":
-                    showMessage("Modificar algún atributo de la pregunta seleccionado.");
-                    // Lógica para modificar la pregunta
                     mostrarMenuModificarPregunta(p);
                     waitForUserInput();
                     break;
                 case "2":
-                    showMessage("Eliminar la pregunta seleccionado.");
-                    // Lógica para eliminar la pregunta
                     try {
                         controller.removeQuestion(p);
                         showMessage("Pregunta eliminada exitosamente.");
@@ -245,7 +236,7 @@ public class InteractiveView extends BaseView {
                 case "1":
                     showMessage("Modificar autor seleccionado.");
                     String nuevoAutor = readString_ne("Ingrese el nuevo autor: ");
-                    p.setAuthor(nuevoAutor); //MIRAR Q ESTA MAL, hay q hacer funcion en model, o en 
+                    p.setAuthor(nuevoAutor); // PREGUNTAR AL PROFESOR SI ESTO VA AQUÍ O EN EL MODELO
                     showMessage("¡Autor modificado correctamente!");
                     waitForUserInput();
                     break;

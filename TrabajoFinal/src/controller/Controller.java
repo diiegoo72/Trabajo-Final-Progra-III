@@ -1,6 +1,8 @@
 package controller;
 
+import java.util.ArrayList;
 import java.util.List;
+
 import model.Model;
 import model.Option;
 import model.Question;
@@ -21,7 +23,30 @@ public class Controller {
     }
 
     // Métodos
-    public void start() {
+    public void start() throws RepositoryException {
+        StringBuilder banner = new StringBuilder();
+        banner.append("\n");
+        banner.append("███████╗██╗  ██╗ █████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ████████╗ ██████╗ ██████╗     ██████╗  ██████╗  ██████╗  ██████╗ \r\n" + //
+                        "██╔════╝╚██╗██╔╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗    ╚════██╗██╔═████╗██╔═████╗██╔═████╗\r\n" + //
+                        "█████╗   ╚███╔╝ ███████║██╔████╔██║██║██╔██╗ ██║███████║   ██║   ██║   ██║██████╔╝     █████╔╝██║██╔██║██║██╔██║██║██╔██║\r\n" + //
+                        "██╔══╝   ██╔██╗ ██╔══██║██║╚██╔╝██║██║██║╚██╗██║██╔══██║   ██║   ██║   ██║██╔══██╗     ╚═══██╗████╔╝██║████╔╝██║████╔╝██║\r\n" + //
+                        "███████╗██╔╝ ██╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║   ██║   ╚██████╔╝██║  ██║    ██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝\r\n" + //
+                        "╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝    ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ \r\n" + //
+                        "                                                                                                                         ");
+        banner.append("\n");
+        view.showMessage(banner.toString());
+
+        // Cargar las preguntas desde el repositorio al iniciar la aplicación
+        ArrayList<Question> questions = model.getAllQuestions();
+
+        // Mensaje claro sobre el estado del repositorio
+        if (questions != null && !questions.isEmpty()) {
+            view.showMessage("Se han cargado " + questions.size() + " preguntas desde el repositorio.");
+        } else {
+            view.showMessage("No hay preguntas en el repositorio binario del home del usuario.");
+        }
+
+        // Iniciar la vista de la aplicación
         view.init();
     }
 
@@ -43,7 +68,7 @@ public class Controller {
     }
 
     // Método para obtener todas las preguntas
-    public List<Question> getAllQuestions() throws RepositoryException {
+    public ArrayList<Question> getAllQuestions() throws RepositoryException {
         return model.getAllQuestions();
     }
 

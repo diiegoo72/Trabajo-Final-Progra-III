@@ -9,7 +9,7 @@ public class Model {
     private QuestionBackupIO backupHandler;
     private ArrayList<QuestionCreator> questionCreators;
 
-    // falta constructor
+    // falta constructor de questionCreators
     public Model(IRepository repository, QuestionBackupIO backupHandler) {
         this.repository = repository;
         this.backupHandler = backupHandler;
@@ -32,7 +32,7 @@ public class Model {
     }
 
     // Método para obtener todas las preguntas del repositorio
-    public List<Question> getAllQuestions() throws RepositoryException  {
+    public ArrayList<Question> getAllQuestions() throws RepositoryException  {
         return repository.getAllQuestions();
     }
 
