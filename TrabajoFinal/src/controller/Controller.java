@@ -1,6 +1,7 @@
 package controller;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import model.Model;
@@ -24,34 +25,13 @@ public class Controller {
 
     // Métodos
     public void start() throws RepositoryException {
-        StringBuilder banner = new StringBuilder();
-        banner.append("\n");
-        banner.append("███████╗██╗  ██╗ █████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ████████╗ ██████╗ ██████╗     ██████╗  ██████╗  ██████╗  ██████╗ \r\n" + //
-                        "██╔════╝╚██╗██╔╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗    ╚════██╗██╔═████╗██╔═████╗██╔═████╗\r\n" + //
-                        "█████╗   ╚███╔╝ ███████║██╔████╔██║██║██╔██╗ ██║███████║   ██║   ██║   ██║██████╔╝     █████╔╝██║██╔██║██║██╔██║██║██╔██║\r\n" + //
-                        "██╔══╝   ██╔██╗ ██╔══██║██║╚██╔╝██║██║██║╚██╗██║██╔══██║   ██║   ██║   ██║██╔══██╗     ╚═══██╗████╔╝██║████╔╝██║████╔╝██║\r\n" + //
-                        "███████╗██╔╝ ██╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║   ██║   ╚██████╔╝██║  ██║    ██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝\r\n" + //
-                        "╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝    ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ \r\n" + //
-                        "                                                                                                                         ");
-        banner.append("\n");
-        view.showMessage(banner.toString());
-
-        // Cargar las preguntas desde el repositorio al iniciar la aplicación
-        ArrayList<Question> questions = model.getAllQuestions();
-
-        // Mensaje claro sobre el estado del repositorio
-        if (questions != null && !questions.isEmpty()) {
-            view.showMessage("Se han cargado " + questions.size() + " preguntas desde el repositorio.");
-        } else {
-            view.showMessage("No hay preguntas en el repositorio binario del home del usuario.");
-        }
-
         // Iniciar la vista de la aplicación
         view.init();
     }
 
-    public void end() {
-        
+    public void end() throws RepositoryException {
+        model.saveQuestions();
+        view.end();
     }
 
 
@@ -82,5 +62,21 @@ public class Controller {
 
     public void exportQuestions(String archivo) throws QuestionBackupIOException, RepositoryException {
         model.exportQuestions(archivo);
+    }
+
+    public void importQuestions(String archivoImport) throws QuestionBackupIOException, RepositoryException {
+        model.importQuestions(archivoImport);
+    }
+
+    public HashSet<String> startExamMode() throws RepositoryException {
+        return model.getAvailableTopics();
+    }
+
+    public int getMaxQuestions(String temaSeleccionado) throws RepositoryException {
+        return model.getMaxQuestions(temaSeleccionado);
+    }
+
+    public ArrayList<Question> configExam(String temaSeleccionado, int numPreguntas) {
+        return model.configExam(temaSeleccionado, numPreguntas);
     }
 }

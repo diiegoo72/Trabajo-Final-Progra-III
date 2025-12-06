@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
@@ -15,12 +16,40 @@ public class BinaryRepository implements IRepository {
     // Lista de preguntas en memoria
     private ArrayList<Question> questions;
 
+    public ArrayList<Question> getQuestions() {
+        return questions;
+    }
+
     // Método para agregar una pregunta al repositorio
     @Override
-    public Question addQuestion(Question q) throws RepositoryException {
+    public void addQuestion(Question q) throws RepositoryException {
+        if (q == null) {
+            throw new RepositoryException("La pregunta es nula.");
+        }
+
+        // Asegurar que la lista en memoria esté inicializada
+        if (questions == null) {
+            questions = getAllQuestions();
+        }
+
+        // Comprobar duplicados por id
+        if (q.getId() != null) {
+            for (Question existing : questions) {
+                if (existing != null && existing.getId() != null && existing.getId().equals(q.getId())) {
+                    return; // Pregunta duplicada
+                }
+            }
+        } else {
+            return; // Pregunta sin id
+        }
+
+        // Añadir y guardar
         questions.add(q);
-        saveQuestions(questions);
-        return q;
+        try {
+            saveQuestions();
+        } catch (RepositoryException e) {
+            throw new RepositoryException("Error al guardar la pregunta: " + e.getMessage(), e);
+        }
     }
 
     // Método para eliminar una pregunta del repositorio
@@ -32,7 +61,7 @@ public class BinaryRepository implements IRepository {
                 break;
             }
         }
-        saveQuestions(questions);
+        saveQuestions();
     }
 
     // Método para modificar una pregunta en el repositorio
@@ -44,63 +73,47 @@ public class BinaryRepository implements IRepository {
                 break;
             }
         }
-        saveQuestions(questions);
+        saveQuestions();
     }
 
     // Método para obtener todas las preguntas del repositorio
     @Override
     public ArrayList<Question> getAllQuestions() throws RepositoryException {
+        // Si el archivo no existe, inicializar lista vacía
         if (!Files.exists(ruta)) {
-            return new ArrayList<>();
+            questions = new ArrayList<>();
+            return questions;
         }
-        ObjectInputStream ois = null;
-        try {
-            ois = new ObjectInputStream(Files.newInputStream(ruta));
+        
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(ruta))) {
             Object obj = ois.readObject();
+
+            if (!(obj instanceof ArrayList<?> list)) {
+                throw new RepositoryException("El archivo no contiene una lista válida de preguntas.");
+            }
+
             ArrayList<Question> loaded = new ArrayList<>();
-            if (obj instanceof ArrayList<?>) {
-                for (Object item : (ArrayList<?>) obj) {
-                    if (item instanceof Question) {
-                        loaded.add((Question) item);
-                    }
+            for (Object item : list) {
+                if (item instanceof Question q) {
+                    loaded.add(q);
                 }
             }
+
             questions = loaded;
             return questions;
-        } catch (java.io.IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        } finally {
-            if (ois != null) {
-                try {
-                    ois.close();
-                } catch (java.io.IOException e) {
-                    e.printStackTrace();
-                }
-            }
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RepositoryException("Error al leer las preguntas", e);
         }
     }
 
     // Método para guardar la lista de preguntas en el archivo binario
     @Override
-    public boolean saveQuestions(ArrayList<Question> questions) throws RepositoryException {
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(Files.newOutputStream(ruta));
+    public void saveQuestions() throws RepositoryException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(ruta))) {
             oos.writeObject(questions);
-            return true;
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            if (oos != null) {
-                try {
-                    oos.close();
-                } catch (java.io.IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        } catch (IOException e) {
+            throw new RepositoryException("Error al guardar las preguntas: " + e.getMessage(), e);
         }
     }
-
 }

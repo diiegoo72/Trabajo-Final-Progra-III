@@ -1,12 +1,12 @@
 package model;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public interface QuestionBackupIO {
 
-    public void exportQuestions(List<Question> questions, String archivo) throws QuestionBackupIOException;
+    public void exportQuestions(ArrayList<Question> questions, String archivo) throws QuestionBackupIOException, RepositoryException;
 
-    public List<Question> importQuestions() throws QuestionBackupIOException;
+    public ArrayList<Question> importQuestions(String archivo) throws QuestionBackupIOException, RepositoryException;
 
     public String getBackupIODescription() throws QuestionBackupIOException;
     
