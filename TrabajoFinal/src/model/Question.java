@@ -84,5 +84,25 @@ public class Question implements Serializable {
         this.options = options;
     }
 
+
+    public boolean isCorrectOption(String respuesta) {
+        for (Option option : options) {
+            if (option.getText().equalsIgnoreCase(respuesta)) {
+                return option.isCorrect();
+            }
+        }
+        return false;
+    }
+
+
+    public String getRationaleForOption(String respuesta) {
+        for (Option option : options) {
+            if (option.getText().equalsIgnoreCase(respuesta)) {
+                return option.getRationale();
+            }
+        }
+        return "No rationale available.";
+    }
+
     
 }

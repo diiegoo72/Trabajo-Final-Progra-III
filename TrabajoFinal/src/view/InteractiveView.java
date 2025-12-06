@@ -4,17 +4,31 @@ import static com.coti.tools.Esdia.readInt;
 import static com.coti.tools.Esdia.readString_ne;
 import static com.coti.tools.Esdia.readString;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.checkerframework.checker.units.qual.A;
+
+import model.Examen;
 import model.Option;
 import model.Question;
 import model.QuestionBackupIOException;
+import model.QuestionCreatorException;
 import model.RepositoryException;
 
 public class InteractiveView extends BaseView {
+
+    private static final String RESET = "\u001B[0m";
+    private static final String BOLD = "\u001B[1m";
+
+    private static final String CYAN = "\u001B[36m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String BLUE = "\u001B[34m";
+    private static final String PURPLE = "\u001B[35m";
+    private static final String RED = "\u001B[31m";
+    private static final String GRAY = "\u001B[90m";
 
     @Override
     public void end() {
@@ -38,7 +52,7 @@ public class InteractiveView extends BaseView {
 
         // Mensaje claro sobre el estado del repositorio
         if (questions != null && !questions.isEmpty()) {
-            showMessage("Se han cargado " + questions.size() + " preguntas desde el repositorio.");
+            showGoodMessage("Se han cargado " + questions.size() + " preguntas desde el repositorio.");
         } else {
             showMessage("No hay preguntas en el repositorio binario del home del usuario.");
         }
@@ -51,8 +65,6 @@ public class InteractiveView extends BaseView {
 
     @Override
     public void showErrorMessage(String msg) {
-        final String RED = "\u001B[31m"; // Código ANSI para rojo
-        final String RESET = "\u001B[0m"; // Resetea al color normal
         System.err.println(RED + "\n" + msg + RESET);
     }
 
@@ -61,9 +73,7 @@ public class InteractiveView extends BaseView {
         System.out.println(msg);
     }
 
-    private void showExitoMessage(String string) {
-        final String GREEN = "\u001B[32m"; // Código ANSI para verde
-        final String RESET = "\u001B[0m"; // Resetea al color normal
+    private void showGoodMessage(String string) {
         System.out.println(GREEN + "\n" + string + RESET);
     }
 
@@ -114,7 +124,7 @@ public class InteractiveView extends BaseView {
                 " |_|  |_|___|_|\\_|\\___/  |_| |_|_\\___|_|\\_|\\___|___|_|/_/ \\_\\____|\r\n" + //
                 "                                                                  ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(YELLOW + BOLD + banner.toString() + RESET);
     }
 
     public void bannerMenuCRUD() {
@@ -182,10 +192,10 @@ public class InteractiveView extends BaseView {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("  __  __  ___  ___   ___    _____  __   _   __  __ ___ _  _ \r\n" + //
-                        " |  \\/  |/ _ \\|   \\ / _ \\  | __\\ \\/ /  /_\\ |  \\/  | __| \\| |\r\n" + //
-                        " | |\\/| | (_) | |) | (_) | | _| >  <  / _ \\| |\\/| | _|| .` |\r\n" + //
-                        " |_|  |_|\\___/|___/ \\___/  |___/_/\\_\\/_/ \\_\\_|  |_|___|_|\\_|\r\n" + //
-                        "                                                            ");
+                " |  \\/  |/ _ \\|   \\ / _ \\  | __\\ \\/ /  /_\\ |  \\/  | __| \\| |\r\n" + //
+                " | |\\/| | (_) | |) | (_) | | _| >  <  / _ \\| |\\/| | _|| .` |\r\n" + //
+                " |_|  |_|\\___/|___/ \\___/  |___/_/\\_\\/_/ \\_\\_|  |_|___|_|\\_|\r\n" + //
+                "                                                            ");
         banner.append("\n");
         showMessage(banner.toString());
     }
@@ -212,6 +222,9 @@ public class InteractiveView extends BaseView {
                 case "2":
                     mostrarMenuImpExp();
                     break;
+                case "3":
+                    crearPreguntaAutomatica();
+                    break;
                 case "4":
                     mostrarModoExamen();
                     break;
@@ -225,53 +238,147 @@ public class InteractiveView extends BaseView {
         }
     }
 
-    private void mostrarModoExamen() {
+    private void crearPreguntaAutomatica() {
         vaciarPantalla();
-        bannerModoExamen();
-        HashSet<String> temasDisponibles = new HashSet<>();
-        try {
-            temasDisponibles = controller.startExamMode();
-        } catch (RepositoryException e) {
-            showErrorMessage("Error al obtener los temas disponibles: " + e.getMessage());
-        }
-        ArrayList<String> temasLista = new ArrayList<>(temasDisponibles);
-        temasLista.add("TODOS LOS TEMAS");
+        bannerCrearNuevaPregunta();
 
-        showMessage("TEMAS A ELEGIR PARA LAS PREGUNTAS DEL EXAMEN");
-        for (int i = 1; i <= temasLista.size(); i++) {
-            showMessage("[" + i + "] " + temasLista.get(i-1));
+        ArrayList<String> modelos = controller.getModelosDisponibles();
+
+        showMessage("--- MODELOS DE IA DISPONIBLES PARA GENERAR PREGUNTAS ---\n");
+        if (modelos.isEmpty()) {
+            showErrorMessage("No hay modelos de IA disponibles para generar preguntas.\n");
+            waitForUserInput();
+            return;
         }
-        String temaSeleccionado = "";
-        boolean encontrado = false;
-        do {
-            int opcionTema = readInt("\n>>> Seleccione el tema (o todos los temas) de los que se quiera examinar -> ");
-            if (opcionTema == temasLista.size()) {
-                temaSeleccionado = "TODOS LOS TEMAS";
-                showExitoMessage("¡Has seleccionado TODOS LOS TEMAS!");
-                encontrado = true;
-                break;
-            } else
-            if (opcionTema >= 1 && opcionTema <= temasLista.size()) {
-                temaSeleccionado = temasLista.get(opcionTema - 1);
-                showExitoMessage("¡Has seleccionado el tema: " + temaSeleccionado + "!");
-                encontrado = true;
+        for (int i = 0; i < modelos.size(); i++) {
+            showMessage("[" + (i + 1) + "] " + modelos.get(i));
+        }
+        int modeloIndex;
+        String selectedModel;
+        while (true) {
+            modeloIndex = readInt("\n>>> Seleccione el modelo de IA para generar la pregunta -> ");
+            if (modeloIndex >= 1 && modeloIndex <= modelos.size()) {
+                selectedModel = modelos.get(modeloIndex - 1);
+                showGoodMessage("¡Has seleccionado el modelo: " + selectedModel + "!");
                 break;
             } else {
                 showErrorMessage("Opción no válida. Intente de nuevo.");
             }
-        } while (!encontrado);
-        int maxPreguntas = 0;
+        }
+
+        String tema = readString_ne("\n>>> Introduce el tema de la pregunta -> ");
+
+        try {
+            Question preguntaGenerada = controller.createQuestion(tema, selectedModel);
+            controller.addQuestion(preguntaGenerada);
+            mostrarPregunta(preguntaGenerada, 0, ModoPregunta.COMPLETA);
+            showGoodMessage("¡Pregunta generada y añadida exitosamente al repositorio!");
+        } catch (RepositoryException e) {
+            showErrorMessage("Error al añadir la pregunta al repositorio: " + e.getMessage());
+        } catch (QuestionCreatorException e) {
+            showErrorMessage("Error al generar la pregunta automática: " + e.getMessage());
+        }
+
+        waitForUserInput();
+    }
+
+    private void mostrarModoExamen() {
+        vaciarPantalla();
+        bannerModoExamen();
+        // Temas disponibles
+        HashSet<String> temasDisponibles = new HashSet<>();
+        try {
+            temasDisponibles = controller.getAvailableTopics();
+        } catch (RepositoryException e) {
+            showErrorMessage("Error al obtener los temas: " + e.getMessage());
+            return;
+        }
+
+        ArrayList<String> temasLista = new ArrayList<>(temasDisponibles);
+        temasLista.add("TODOS LOS TEMAS");
+
+        showMessage("TEMAS A ELEGIR PARA EL EXAMEN:");
+        for (int i = 1; i <= temasLista.size(); i++) {
+            showMessage("[" + i + "] " + temasLista.get(i - 1));
+        }
+
+        // Selección de tema
+        String temaSeleccionado = "";
+        while (true) {
+            int opcionTema = readInt("\n>>> Seleccione el tema (o todos los temas) -> ");
+            if (opcionTema == temasLista.size()) {
+                temaSeleccionado = "TODOS LOS TEMAS";
+                showGoodMessage("¡Has seleccionado TODOS LOS TEMAS!");
+                break;
+            } else if (opcionTema >= 1 && opcionTema <= temasLista.size()) {
+                temaSeleccionado = temasLista.get(opcionTema - 1);
+                showGoodMessage("¡Has seleccionado el tema: " + temaSeleccionado + "!");
+                break;
+            } else {
+                showErrorMessage("Opción no válida. Intente de nuevo.");
+            }
+        }
+
+        // -----------------------------
+        // Número de preguntas
+        // -----------------------------
+        int maxPreguntas;
         try {
             maxPreguntas = controller.getMaxQuestions(temaSeleccionado);
         } catch (RepositoryException e) {
             showErrorMessage("Error al obtener el número máximo de preguntas: " + e.getMessage());
+            return;
         }
-        int numPreguntas = readInt(">>> Introduce el número de pregutas que desea (entre 1 y " + maxPreguntas + ") -> ");
-        ArrayList<Question> preguntasSeleccionadas = controller.configExam(temaSeleccionado, numPreguntas);
+
+        int numPreguntas;
+        do {
+            numPreguntas = readInt(">>> Introduce el número de preguntas (1 - " + maxPreguntas + ") -> ");
+            if (numPreguntas < 1 || numPreguntas > maxPreguntas) {
+                showErrorMessage("Número inválido. Intente de nuevo.");
+            }
+        } while (numPreguntas < 1 || numPreguntas > maxPreguntas);
+
+        showGoodMessage("¡Has seleccionado " + numPreguntas + " preguntas para el examen!");
+
+        // Iniciar examen
+        controller.iniciarExamen(temaSeleccionado, numPreguntas);
+
+        // Preguntas y respuestas
+        for (int i = 0; i < numPreguntas; i++) {
+            vaciarPantalla();
+            bannerModoExamen();
+
+            Question q = controller.getPregunta(i);
+            mostrarPregunta(q, i + 1, ModoPregunta.SIMPLE);
+
+            String respuesta;
+            while (true) {
+                respuesta = readString(">>> Ingrese su respuesta (A/B/C/D) o pulsa INTRO para no responder -> ");
+                if (respuesta.equalsIgnoreCase("A") || respuesta.equalsIgnoreCase("B") ||
+                        respuesta.equalsIgnoreCase("C") || respuesta.equalsIgnoreCase("D") || respuesta.isEmpty()) {
+                    break;
+                } else {
+                    showErrorMessage("Respuesta no válida. Intente de nuevo.");
+                }
+            }
+
+            String resultado = controller.responderPregunta(i, respuesta);
+            showMessage(resultado);
+            waitForUserInput();
+        }
+
+        // -----------------------------
+        // Resultados finales
+        // -----------------------------
+        controller.finalizarExamen();
+
         vaciarPantalla();
         bannerModoExamen();
-        showMessage("¡El examen ha comenzado! A continuación se presentan las preguntas seleccionadas:\n");
-        // AQUI ME HE QUEDADO MAÑANA MAAASSSS
+        showMessage("¡Examen finalizado! Aquí están tus resultados:\n");
+
+        Examen examen = controller.getExamen();
+        showMessage(examen.getResumen());
+
         waitForUserInput();
     }
 
@@ -290,7 +397,7 @@ public class InteractiveView extends BaseView {
                     String archivo = readString_ne("\n>>> Ingrese el nombre del archivo de destino (con .json) -> ");
                     try {
                         controller.exportQuestions(archivo);
-                        showExitoMessage("Preguntas exportadas exitosamente a " + archivo);
+                        showGoodMessage("Preguntas exportadas exitosamente a " + archivo);
                     } catch (QuestionBackupIOException e) {
                         showErrorMessage("Error al exportar preguntas: " + e.getMessage());
                     } catch (RepositoryException e) {
@@ -303,7 +410,7 @@ public class InteractiveView extends BaseView {
                             "\n>>> Ingrese el nombre del archivo de origen (con .json) -> ");
                     try {
                         controller.importQuestions(archivoImport);
-                        showExitoMessage("Preguntas importadas exitosamente desde " + archivoImport);
+                        showGoodMessage("Preguntas importadas exitosamente desde " + archivoImport);
                     } catch (QuestionBackupIOException e) {
                         showErrorMessage("Error al importar preguntas: " + e.getMessage());
                     } catch (RepositoryException e) {
@@ -403,7 +510,7 @@ public class InteractiveView extends BaseView {
         while (!salir) {
             vaciarPantalla();
             bannerMenuDetallesPregunta();
-            mostrarPregunta(p, 0);
+            mostrarPregunta(p, 0, ModoPregunta.COMPLETA);
             showMessage("\n");
             showMessage("[1] Modificar algún atributo de la pregunta");
             showMessage("[2] Eliminar la pregunta");
@@ -417,7 +524,7 @@ public class InteractiveView extends BaseView {
                 case "2":
                     try {
                         controller.removeQuestion(p);
-                        showExitoMessage("Pregunta eliminada exitosamente.");
+                        showGoodMessage("Pregunta eliminada exitosamente.");
                         salir = true;
                     } catch (RepositoryException e) {
                         showErrorMessage("Error en el repositorio: " + e.getMessage());
@@ -439,7 +546,7 @@ public class InteractiveView extends BaseView {
         while (!salir) {
             vaciarPantalla();
             bannerMenuDetallesPregunta();
-            mostrarPregunta(p, 0);
+            mostrarPregunta(p, 0, ModoPregunta.COMPLETA);
             showMessage("\n");
             showMessage("[1] Modificar autor");
             showMessage("[2] Modificar enunciado");
@@ -452,13 +559,13 @@ public class InteractiveView extends BaseView {
                 case "1":
                     String nuevoAutor = readString_ne(">>> Ingrese el nuevo autor -> ");
                     p.setAuthor(nuevoAutor);
-                    showExitoMessage("¡Autor modificado correctamente!");
+                    showGoodMessage("¡Autor modificado correctamente!");
                     waitForUserInput();
                     break;
                 case "2":
                     String nuevoEnunciado = readString_ne(">>> Ingrese el nuevo enunciado -> ");
                     p.setStatement(nuevoEnunciado);
-                    showExitoMessage("¡Enunciado modificado correctamente!");
+                    showGoodMessage("¡Enunciado modificado correctamente!");
                     waitForUserInput();
                     break;
                 case "3":
@@ -470,7 +577,7 @@ public class InteractiveView extends BaseView {
                         nuevosTemas.add(tema);
                     }
                     p.setTopics(nuevosTemas);
-                    showExitoMessage("¡Temas modificados correctamente!");
+                    showGoodMessage("¡Temas modificados correctamente!");
                     waitForUserInput();
                     break;
                 case "4":
@@ -494,7 +601,7 @@ public class InteractiveView extends BaseView {
                     List<Option> options = controller.createOptions(opcionA, rationaleA, opcionB, rationaleB, opcionC,
                             rationaleC, opcionD, rationaleD, correctOption);
                     p.setOptions(options);
-                    showExitoMessage("¡Opciones modificadas correctamente!");
+                    showGoodMessage("¡Opciones modificadas correctamente!");
                     waitForUserInput();
                     break;
                 case "5":
@@ -549,7 +656,7 @@ public class InteractiveView extends BaseView {
         // Crear la pregunta y agregarla al repositorio
         try {
             controller.addQuestion(new Question(author, topics, statement, options));
-            showExitoMessage("\nPregunta creada y guardada exitosamente.");
+            showGoodMessage("\nPregunta creada y guardada exitosamente.");
         } catch (RepositoryException e) {
             showErrorMessage("Error en el repositorio: " + e.getMessage());
         }
@@ -557,8 +664,26 @@ public class InteractiveView extends BaseView {
     }
 
     private void listarPreguntasPorTema() {
+        // Temas disponibles
+        HashSet<String> temasDisponibles = new HashSet<>();
+        try {
+            temasDisponibles = controller.getAvailableTopics();
+        } catch (RepositoryException e) {
+            showErrorMessage("Error al obtener los temas: " + e.getMessage());
+            return;
+        }
+
+        ArrayList<String> temasLista = new ArrayList<>(temasDisponibles);
+
+        showMessage(BLUE + "\n --- TEMAS A ELEGIR ---" + RESET);
+        for (int i = 1; i <= temasLista.size(); i++) {
+            showMessage(temasLista.get(i - 1));
+        }
+        // Selección de tema
         String tema = readString_ne("\n>>> Ingrese el tema por el cual filtrar las preguntas -> ");
         tema = tema.toUpperCase();
+        
+        // Listar preguntas del tema seleccionado
         try {
             List<Question> preguntas = controller.getAllQuestions();
             boolean encontrado = false;
@@ -566,7 +691,7 @@ public class InteractiveView extends BaseView {
             for (int i = 0; i < preguntas.size(); i++) {
                 Question q = preguntas.get(i);
                 if (q.getTopics().contains(tema)) {
-                    mostrarPregunta(q, i + 1);
+                    mostrarPregunta(q, i + 1, ModoPregunta.SIMPLE);
                     encontrado = true;
                 }
             }
@@ -591,39 +716,69 @@ public class InteractiveView extends BaseView {
 
             // Mostrar en el orden que tienen en el ArrayList (sin reordenar)
             for (int i = 0; i < preguntas.size(); i++) {
-                mostrarPregunta(preguntas.get(i), i + 1);
+                mostrarPregunta(preguntas.get(i), i + 1, ModoPregunta.SIMPLE);
             }
         } catch (RepositoryException e) {
             showErrorMessage("Error en el repositorio: " + e.getMessage());
         }
     }
 
-    private void mostrarPregunta(Question q, int index) {
+    public enum ModoPregunta {
+        COMPLETA,
+        SIMPLE
+    }
+
+
+    private void mostrarPregunta(Question q, int index, ModoPregunta modo) {
+
+        boolean detallado = (modo == ModoPregunta.COMPLETA);
+
         // Título
         if (index > 0) {
-            showMessage("\n================== PREGUNTA " + index + " ==================");
+            showMessage(
+                    CYAN + BOLD + "\n================== PREGUNTA " + index + " ==================" + RESET);
         } else {
-            showMessage("\n=============== DETALLES DE LA PREGUNTA ===============");
+            showMessage(
+                    CYAN + BOLD + "\n=============== DETALLES DE LA PREGUNTA ================" + RESET);
         }
 
         // Autor y temas
-        showMessage("AUTOR : " + q.getAuthor());
-        showMessage("TEMAS : " + String.join(", ", q.getTopics()));
+        if (detallado) {
+            showMessage(PURPLE + BOLD + "AUTOR : " + RESET + q.getAuthor());
+            showMessage(PURPLE + BOLD + "TEMAS : " + RESET + String.join(", ", q.getTopics()));
+        }
 
         // Enunciado
-        showMessage("\nENUNCIADO: " + q.getStatement());
+        showMessage(
+                YELLOW + BOLD + "\nENUNCIADO: " + RESET + q.getStatement());
+
         // Opciones
-        showMessage("\nOPCIONES:");
+        showMessage(BLUE + BOLD + "\nOPCIONES:" + RESET);
         List<Option> opts = q.getOptions();
+
         for (int i = 0; i < opts.size(); i++) {
             Option option = opts.get(i);
             char letter = (char) ('A' + i);
-            String bullet = option.isCorrect() ? "[*]" : "[ ]"; // Resalta la correcta
-            showMessage(" " + bullet + " " + letter + ") " + option.getText());
+
+            boolean correcta = option.isCorrect();
+
+            // Solo en modo detallado la opción correcta se ve en verde
+            String color = (detallado && correcta) ? GREEN + BOLD : RESET;
+
+            showMessage(" " + color + letter + ") " + option.getText() + RESET);
         }
 
-        // Separador final
-        showMessage("================================================\n");
+        // Justificaciones solo en modo detallado
+        if (detallado) {
+            showMessage(PURPLE + BOLD + "\nJUSTIFICACIONES:" + RESET);
+            for (Option option : q.getOptions()) {
+                String color = option.isCorrect() ? GREEN : RESET;
+                showMessage(" " + color + "- " + option.getRationale() + RESET);
+            }
+        }
+
+        showMessage(
+                CYAN + BOLD + "\n================================================\n" + RESET);
     }
 
 }

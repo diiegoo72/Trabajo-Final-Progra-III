@@ -1,7 +1,7 @@
 package model;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -10,22 +10,27 @@ public class Model {
     private IRepository repository;
     private QuestionBackupIO backupHandler;
     private ArrayList<QuestionCreator> questionCreators;
-    private ArrayList<Question> examQuestions;
+    private ArrayList<Question> allQuestions;
+    private Examen examenActual;           
 
-    // falta constructor de questionCreators
-    public Model(IRepository repository, QuestionBackupIO backupHandler) {
+
+    public Model(IRepository repository, QuestionBackupIO backupHandler, ArrayList<QuestionCreator> questionCreators) {
         this.repository = repository;
         this.backupHandler = backupHandler;
+        this.questionCreators = new ArrayList<>();
+        if (questionCreators != null) {
+            this.questionCreators.addAll(questionCreators);
+        }
     }
 
     // Método para crear opciones de una pregunta
     public List<Option> createOptions(String opcionA, String rationaleA, String opcionB, String rationaleB,
             String opcionC, String rationaleC, String opcionD, String rationaleD, String correctOption) {
         List<Option> options = new ArrayList<>();
-        options.add(new Option(opcionA, rationaleA, correctOption.equalsIgnoreCase("A")));
-        options.add(new Option(opcionB, rationaleB, correctOption.equalsIgnoreCase("B")));
-        options.add(new Option(opcionC, rationaleC, correctOption.equalsIgnoreCase("C")));
-        options.add(new Option(opcionD, rationaleD, correctOption.equalsIgnoreCase("D")));
+        options.add(new Option(opcionA, rationaleA, correctOption.equalsIgnoreCase("A"), "A"));
+        options.add(new Option(opcionB, rationaleB, correctOption.equalsIgnoreCase("B"), "B"));
+        options.add(new Option(opcionC, rationaleC, correctOption.equalsIgnoreCase("C"), "C"));
+        options.add(new Option(opcionD, rationaleD, correctOption.equalsIgnoreCase("D"), "D"));
         return options;
     }
 
@@ -63,54 +68,137 @@ public class Model {
         }
     }
 
+    // -----------------------------
+    // Obtener todos los temas disponibles
+    // -----------------------------
     public HashSet<String> getAvailableTopics() throws RepositoryException {
         HashSet<String> topics = new HashSet<>();
-        examQuestions = getAllQuestions();
+        allQuestions = getAllQuestions();  // Obtener preguntas del repositorio
 
-        for (Question q : examQuestions) {
+        for (Question q : allQuestions) {
             topics.addAll(q.getTopics());
         }
 
         return topics;
     }
 
-    public int getMaxQuestions(String temaSeleccionado) throws RepositoryException {
-        if (temaSeleccionado.equals("TODOS LOS TEMAS")) {
-            return examQuestions.size();
+    // -----------------------------
+    // Obtener número máximo de preguntas para un tema
+    // -----------------------------
+    public int getMaxQuestions(String tema) throws RepositoryException {
+        if (tema.equals("TODOS LOS TEMAS")) {
+            return allQuestions.size();
+        }
+
+        int count = 0;
+        for (Question q : allQuestions) {
+            if (q.getTopics().contains(tema)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // -----------------------------
+    // Iniciar examen
+    // -----------------------------
+    public void iniciarExamen(String tema, int numPreguntas) {
+
+        // Filtrar preguntas por tema
+        List<Question> filtradas = new ArrayList<>();
+        if (tema.equals("TODOS LOS TEMAS")) {
+            filtradas.addAll(allQuestions);
         } else {
-            int count = 0;
-            for (Question q : examQuestions) {
-                if (q.getTopics().contains(temaSeleccionado)) {
-                    count++;
+            for (Question q : allQuestions) {
+                if (q.getTopics().contains(tema)) {
+                    filtradas.add(q);
                 }
             }
-            return count;
+        }
+
+        // Mezclar preguntas y seleccionar N primeras
+        Collections.shuffle(filtradas);
+        ArrayList<Question> seleccionadas = new ArrayList<>(filtradas.subList(0, numPreguntas));
+
+        // Crear y guardar el examen actual
+        examenActual = new Examen(seleccionadas, numPreguntas);
+    }
+
+    // -----------------------------
+    // Obtener pregunta por índice
+    // -----------------------------
+    public Question getPregunta(int index) {
+        if (examenActual == null) return null;
+        return examenActual.getPreguntas().get(index);
+    }
+
+    // -----------------------------
+    // Responder pregunta
+    // -----------------------------
+public String responderPregunta(int index, String respuesta) {
+    // Códigos de colores ANSI
+    final String RESET = "\u001B[0m";
+    final String RED = "\u001B[31m";
+    final String GREEN = "\u001B[32m";
+
+    Question pregunta = examenActual.getPreguntas().get(index);
+
+    // Si no contesta
+    if (respuesta.isEmpty()) {
+        examenActual.incrementarNoContestadas();
+        return "\nNo has respondido esta pregunta.";
+    }
+
+    // Buscar opción seleccionada
+    for (Option op : pregunta.getOptions()) {
+        if (op.getUserAnswer().equalsIgnoreCase(respuesta)) {
+
+            if (op.isCorrect()) {
+                examenActual.incrementarAcertadas();
+                return GREEN + "\n¡Respuesta correcta! (" + op.getRationale() + ")" + RESET;
+            } else {
+                examenActual.incrementarIncorrectas();
+                return RED + "\nRespuesta incorrecta (" + op.getRationale() + ")" + RESET;
+            }
+        }
+    }
+    return "";
+}
+
+
+    // -----------------------------
+    // Finalizar examen (para medir tiempo)
+    // -----------------------------
+    public void finalizarExamen() {
+        if (examenActual != null) {
+            examenActual.finalizarExamen();
         }
     }
 
-    public ArrayList<Question> configExam(String temaSeleccionado, int numPreguntas) {
-        ArrayList<Question> selectedQuestions = new ArrayList<>();
-        ArrayList<Question> filteredQuestions = new ArrayList<>();
+    // -----------------------------
+    // Obtener examen para resultados finales
+    // -----------------------------
+    public Examen getExamen() {
+        return examenActual;
+    }
 
-        if (temaSeleccionado.equals("TODOS LOS TEMAS")) {
-            filteredQuestions.addAll(examQuestions);
-        } else {
-            for (Question q : examQuestions) {
-                if (q.getTopics().contains(temaSeleccionado)) {
-                    filteredQuestions.add(q);
-                }
+    public Question createQuestion(String tema, String modelo) throws QuestionCreatorException {
+        for (QuestionCreator qc : questionCreators) {
+            if (qc.getQuestionCreatorDescription().contains(modelo)) {
+                return qc.createQuestion(tema);
             }
         }
+        throw new QuestionCreatorException("No se encontró un creador de preguntas para el modelo: " + modelo);
+        
+    }
 
-        // Seleccionar preguntas hasta alcanzar el número deseado
-        for (int i = 0; i < numPreguntas && i < filteredQuestions.size(); i++) {
-            selectedQuestions.add(filteredQuestions.get(i));
+    public ArrayList<String> getModelosDisponibles(){
+        ArrayList<String> modelos = new ArrayList<>();
+        for (QuestionCreator qc : questionCreators) {
+            modelos.add(qc.getQuestionCreatorDescription());
         }
-
-        // Actualizar las preguntas del examen
-        this.examQuestions = selectedQuestions;
-
-        return selectedQuestions;
+        return modelos;
     }
 
 }
+
