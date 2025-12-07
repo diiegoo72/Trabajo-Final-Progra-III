@@ -38,7 +38,12 @@ public class Model {
         repository.addQuestion(question);
     }
 
-    // Método para obtener todas las preguntas del repositorio
+    // Método para obtener todas las preguntas desde el repositorio
+    public ArrayList<Question> getAllQuestionsFromRepository() throws RepositoryException {
+        return repository.getAllQuestionsFromRepository();
+    }
+
+    // Método para obtener todas las preguntas
     public ArrayList<Question> getAllQuestions() throws RepositoryException {
         return repository.getAllQuestions();
     }
@@ -191,5 +196,6 @@ public class Model {
         }
         return modelos;
     }
+
 
 }

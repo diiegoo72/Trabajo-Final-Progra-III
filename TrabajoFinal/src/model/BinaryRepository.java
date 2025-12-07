@@ -45,11 +45,6 @@ public class BinaryRepository implements IRepository {
 
         // Añadir y guardar
         questions.add(q);
-        try {
-            saveQuestions();
-        } catch (RepositoryException e) {
-            throw new RepositoryException("Error al guardar la pregunta: " + e.getMessage(), e);
-        }
     }
 
     // Método para eliminar una pregunta del repositorio
@@ -61,7 +56,6 @@ public class BinaryRepository implements IRepository {
                 break;
             }
         }
-        saveQuestions();
     }
 
     // Método para modificar una pregunta en el repositorio
@@ -73,12 +67,20 @@ public class BinaryRepository implements IRepository {
                 break;
             }
         }
-        saveQuestions();
+    }
+
+    // Método para obtener todas las preguntas (cargando desde el repositorio si es necesario)
+    @Override
+    public ArrayList<Question> getAllQuestions() throws RepositoryException {
+        if (questions == null) {
+            questions = getAllQuestionsFromRepository();
+        }
+        return questions;
     }
 
     // Método para obtener todas las preguntas del repositorio
     @Override
-    public ArrayList<Question> getAllQuestions() throws RepositoryException {
+    public ArrayList<Question> getAllQuestionsFromRepository() throws RepositoryException {
         // Si el archivo no existe, inicializar lista vacía
         if (!Files.exists(ruta)) {
             questions = new ArrayList<>();

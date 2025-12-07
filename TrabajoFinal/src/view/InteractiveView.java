@@ -51,7 +51,7 @@ public class InteractiveView extends BaseView {
         // Cargar las preguntas desde el repositorio al iniciar la aplicación
         ArrayList<Question> questions = new ArrayList<>();
         try {
-            questions = controller.getAllQuestions();
+            questions = controller.getAllQuestionsFromRepository();
         } catch (RepositoryException e) {
             showErrorMessage("Error al cargar las preguntas del repositorio: " + e.getMessage());
         }

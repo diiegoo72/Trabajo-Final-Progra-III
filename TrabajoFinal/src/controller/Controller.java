@@ -46,7 +46,12 @@ public class Controller {
         model.addQuestion(question);
     }
 
-    // Método para obtener todas las preguntas
+    // Método para obtener todas las preguntas desde el repositorio
+    public ArrayList<Question> getAllQuestionsFromRepository() throws RepositoryException {
+        return model.getAllQuestionsFromRepository();
+    }
+
+    // Método para obtener todas las preguntas 
     public ArrayList<Question> getAllQuestions() throws RepositoryException {
         return model.getAllQuestions();
     }
@@ -115,4 +120,6 @@ public class Controller {
     public ArrayList<String> getModelosDisponibles() {
         return model.getModelosDisponibles();
     }
+
+
 }

@@ -14,5 +14,7 @@ public interface IRepository {
     public ArrayList<Question> getAllQuestions() throws RepositoryException;
 
     public void saveQuestions() throws RepositoryException;
+
+    public ArrayList<Question> getAllQuestionsFromRepository() throws RepositoryException;
     
 }
