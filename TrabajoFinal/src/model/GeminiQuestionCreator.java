@@ -57,8 +57,16 @@ public class GeminiQuestionCreator implements QuestionCreator {
     // Convierte DTO a Question usando modelo y topic
     private Question convertToQuestion(QuestionDTO dto, String topic) {
         List<Option> opciones = new ArrayList<>();
-        for (OptionDTO o : dto.options) {
-            opciones.add(new Option(o.text, o.rationale, o.correct, "")); // userAnswer vacío
+        for (int i = 0; i < dto.options.size(); i++) {
+            OptionDTO optDto = dto.options.get(i);
+            String label = switch (i) {
+                case 0 -> "A";
+                case 1 -> "B";
+                case 2 -> "C";
+                case 3 -> "D";
+                default -> "X";
+            };
+            opciones.add(new Option(optDto.text, optDto.rationale, optDto.correct, label));
         }
 
         HashSet<String> topicsSet = new HashSet<>();

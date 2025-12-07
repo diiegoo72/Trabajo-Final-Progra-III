@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class Question implements Serializable {
 
@@ -15,6 +16,7 @@ public class Question implements Serializable {
     private HashSet<String> topics;
     private String statement;
     private List<Option> options;
+    private LocalDateTime creationDate; 
 
 
     // Constructor
@@ -25,6 +27,7 @@ public class Question implements Serializable {
         this.topics = topics;
         this.statement = statement;
         this.options = options;
+        this.creationDate = LocalDateTime.now();
     }
 
     
@@ -82,6 +85,14 @@ public class Question implements Serializable {
 
     public void setOptions(List<Option> options) {
         this.options = options;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
 

@@ -37,9 +37,7 @@ public class Controller {
     }
 
     // Método para crear opciones desde la vista
-    public List<Option> createOptions(String opcionA, String rationaleA, String opcionB, String rationaleB,
-            String opcionC,
-            String rationaleC, String opcionD, String rationaleD, String correctOption) {
+    public List<Option> createOptions(String opcionA, String rationaleA, String opcionB, String rationaleB,String opcionC,String rationaleC, String opcionD, String rationaleD, String correctOption) {
         return model.createOptions(opcionA, rationaleA, opcionB, rationaleB, opcionC, rationaleC, opcionD, rationaleD,
                 correctOption);
     }

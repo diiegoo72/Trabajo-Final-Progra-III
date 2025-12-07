@@ -88,31 +88,31 @@ public class Examen {
     // -----------------------------
     // Método resumen
     // -----------------------------
-public String getResumen() {
-    // Códigos de colores ANSI
-    final String RESET = "\u001B[0m";
-    final String RED = "\u001B[31m";
-    final String GREEN = "\u001B[32m";
-    final String YELLOW = "\u001B[33m";
-    final String CYAN = "\u001B[36m";
-    final String MAGENTA = "\u001B[35m";
-    final String WHITE = "\u001B[37m";
+    public String getResumen() {
+        // Códigos de colores ANSI
+        final String RESET = "\u001B[0m";
+        final String RED = "\u001B[31m";
+        final String GREEN = "\u001B[32m";
+        final String YELLOW = "\u001B[33m";
+        final String CYAN = "\u001B[36m";
+        final String MAGENTA = "\u001B[35m";
+        final String WHITE = "\u001B[37m";
 
-    StringBuilder sb = new StringBuilder();
-    
-    sb.append(CYAN).append("╔══════════════════════════════╗").append(RESET).append("\n");
-    sb.append(CYAN).append("║           RESULTADOS         ║").append(RESET).append("\n");
-    sb.append(CYAN).append("╠══════════════════════════════╣").append(RESET).append("\n");
-    sb.append(WHITE).append(String.format("║ %-20s %4d    ║%n", "Número de preguntas:", numPreguntas));
-    sb.append(GREEN).append(String.format("║ %-20s %4d    ║%n", "Acertadas:", acertadas));
-    sb.append(RED).append(String.format("║ %-20s %4d    ║%n", "Incorrectas:", incorrectas));
-    sb.append(YELLOW).append(String.format("║ %-20s %4d    ║%n", "No contestadas:", noContestadas));
-    sb.append(CYAN).append(String.format("║ %-20s %4d s  ║%n", "Tiempo total:", getDuracionSegundos()));
-    sb.append(MAGENTA).append(String.format("║ %-20s %4.2f/10 ║%n", "Nota final:", calcularNota()));
-    sb.append(CYAN).append("╚══════════════════════════════╝").append(RESET).append("\n");
+        StringBuilder sb = new StringBuilder();
 
-    return sb.toString();
-}
+        sb.append(CYAN).append("╔═══════════════════════════════╗").append(RESET).append("\n");
+        sb.append(CYAN).append("║           RESULTADOS          ║").append(RESET).append("\n");
+        sb.append(CYAN).append("╠═══════════════════════════════╣").append(RESET).append("\n");
+        sb.append(WHITE).append(String.format("║ %-20s %4d     ║%n", "Número de preguntas:", numPreguntas));
+        sb.append(GREEN).append(String.format("║ %-20s %4d     ║%n", "Acertadas:", acertadas));
+        sb.append(RED).append(String.format("║ %-20s %4d     ║%n", "Incorrectas:", incorrectas));
+        sb.append(YELLOW).append(String.format("║ %-20s %4d     ║%n", "No contestadas:", noContestadas));
+        sb.append(CYAN).append(String.format("║ %-20s %4d s   ║%n", "Tiempo total:", getDuracionSegundos()));
+        sb.append(CYAN).append("╠═══════════════════════════════╣").append(RESET).append("\n");
+        sb.append(MAGENTA).append(String.format("║ %-18s %7.2f/10 ║%n", "Nota final:", calcularNota())).append(RESET);
+        sb.append(CYAN).append("╚═══════════════════════════════╝").append(RESET).append("\n");
 
+        return sb.toString();
+    }
 
 }

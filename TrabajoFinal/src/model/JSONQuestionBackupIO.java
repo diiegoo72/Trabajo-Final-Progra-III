@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -33,11 +34,15 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
             throw new QuestionBackupIOException("El nombre del archivo no puede estar vacío.");
         }
         if (Paths.get(archivo).getParent() != null) {
-            throw new QuestionBackupIOException("El parámetro 'archivo' debe ser solo un nombre de archivo (sin carpetas).");
+            throw new QuestionBackupIOException(
+                    "El parámetro 'archivo' debe ser solo un nombre de archivo (sin carpetas).");
         }
 
         // 2. Generar JSON con formato bonito
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .setPrettyPrinting()
+                .create();
         String json = gson.toJson(questions);
 
         // 3. Guardar SIEMPRE en el HOME
@@ -79,8 +84,12 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
             String json = Files.readString(ruta, StandardCharsets.UTF_8);
 
             // 5. Parsear JSON
-            Gson gson = new Gson();
-            Type listType = new TypeToken<ArrayList<Question>>() {}.getType();
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                    .setPrettyPrinting()
+                    .create();
+            Type listType = new TypeToken<ArrayList<Question>>() {
+            }.getType();
             ArrayList<Question> questions = gson.fromJson(json, listType);
 
             // 6. Devolver lista NO nula

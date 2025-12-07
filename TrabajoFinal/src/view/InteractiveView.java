@@ -4,11 +4,10 @@ import static com.coti.tools.Esdia.readInt;
 import static com.coti.tools.Esdia.readString_ne;
 import static com.coti.tools.Esdia.readString;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import org.checkerframework.checker.units.qual.A;
 
 import model.Examen;
 import model.Option;
@@ -28,11 +27,11 @@ public class InteractiveView extends BaseView {
     private static final String BLUE = "\u001B[34m";
     private static final String PURPLE = "\u001B[35m";
     private static final String RED = "\u001B[31m";
-    private static final String GRAY = "\u001B[90m";
+    private static final String ORANGE = "\u001B[38;5;208m";
 
     @Override
     public void end() {
-        showMessage("\nGracias por usar la aplicación. ¡Hasta luego!");
+        showGoodMessage("\nGracias por usar la aplicación. ¡Hasta pronto!");
 
     }
 
@@ -136,7 +135,7 @@ public class InteractiveView extends BaseView {
                 "  \\___|_|_\\\\___/|___/  |_| |_| \\___\\__, |\\_,_|_||_\\__\\__,_/__/\r\n" + //
                 "                                   |___/                      ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(ORANGE + BOLD + banner.toString() + RESET);
     }
 
     public void bannerCrearNuevaPregunta() {
@@ -149,7 +148,7 @@ public class InteractiveView extends BaseView {
                 + //
                 "                                                             |___/                   ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(BLUE + BOLD + banner.toString() + RESET);
     }
 
     public void bannerMenuListarPreguntas() {
@@ -161,7 +160,7 @@ public class InteractiveView extends BaseView {
                 " |____|_/__/\\__\\__,_|_|   |_| |_| \\___\\__, |\\_,_|_||_\\__\\__,_/__/\r\n" + //
                 "                                      |___/                      ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(PURPLE + BOLD + banner.toString() + RESET);
     }
 
     public void bannerMenuDetallesPregunta() {
@@ -173,7 +172,7 @@ public class InteractiveView extends BaseView {
                 " |_|  |_\\___/\\__,_|_|_| |_\\__\\__,_|_|   |_| |_| \\___\\__, |\\_,_|_||_\\__\\__,_|\r\n" + //
                 "                                                    |___/                   ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(CYAN + BOLD + banner.toString() + RESET);
     }
 
     public void bannerMenuImpExp() {
@@ -185,7 +184,7 @@ public class InteractiveView extends BaseView {
                 " |___|_|_|_| .__/\\___/_|  \\__\\__,_|_|   /_/   |___/_\\_\\ .__/\\___/_|  \\__\\__,_|_|  \r\n" + //
                 "           |_|                                        |_|                         ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(ORANGE + BOLD + banner.toString() + RESET);
     }
 
     public void bannerModoExamen() {
@@ -197,7 +196,7 @@ public class InteractiveView extends BaseView {
                 " |_|  |_|\\___/|___/ \\___/  |___/_/\\_\\/_/ \\_\\_|  |_|___|_|\\_|\r\n" + //
                 "                                                            ");
         banner.append("\n");
-        showMessage(banner.toString());
+        showMessage(ORANGE + BOLD + banner.toString() + RESET);
     }
 
     // -------------------------
@@ -247,6 +246,8 @@ public class InteractiveView extends BaseView {
         showMessage("--- MODELOS DE IA DISPONIBLES PARA GENERAR PREGUNTAS ---\n");
         if (modelos.isEmpty()) {
             showErrorMessage("No hay modelos de IA disponibles para generar preguntas.\n");
+            showMessage("Para poder usar esta funcionalidad, debe ejecutar la aplicación escribiendo: \n");
+            showMessage("java -jar app.jar -question-creator 'modelo_IA' 'API_KEY'\n");
             waitForUserInput();
             return;
         }
@@ -267,6 +268,7 @@ public class InteractiveView extends BaseView {
         }
 
         String tema = readString_ne("\n>>> Introduce el tema de la pregunta -> ");
+        tema = tema.toUpperCase();
 
         try {
             Question preguntaGenerada = controller.createQuestion(tema, selectedModel);
@@ -682,7 +684,7 @@ public class InteractiveView extends BaseView {
         // Selección de tema
         String tema = readString_ne("\n>>> Ingrese el tema por el cual filtrar las preguntas -> ");
         tema = tema.toUpperCase();
-        
+
         // Listar preguntas del tema seleccionado
         try {
             List<Question> preguntas = controller.getAllQuestions();
@@ -712,9 +714,11 @@ public class InteractiveView extends BaseView {
                 showErrorMessage("No hay preguntas disponibles.");
                 return;
             }
-            showMessage("[ PREGUNTAS ORDENDADAS POR FECHA DE CREACIÓN ]\n");
+            showMessage("[ PREGUNTAS ORDENADAS POR FECHA DE CREACIÓN ]\n");
 
-            // Mostrar en el orden que tienen en el ArrayList (sin reordenar)
+            // Ordenamos por creationDate (más antiguas → más nuevas)
+            preguntas.sort((p1, p2) -> p1.getCreationDate().compareTo(p2.getCreationDate()));
+
             for (int i = 0; i < preguntas.size(); i++) {
                 mostrarPregunta(preguntas.get(i), i + 1, ModoPregunta.SIMPLE);
             }
@@ -728,9 +732,8 @@ public class InteractiveView extends BaseView {
         SIMPLE
     }
 
-
     private void mostrarPregunta(Question q, int index, ModoPregunta modo) {
-
+        DateTimeFormatter FECHA_FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         boolean detallado = (modo == ModoPregunta.COMPLETA);
 
         // Título
@@ -746,6 +749,7 @@ public class InteractiveView extends BaseView {
         if (detallado) {
             showMessage(PURPLE + BOLD + "AUTOR : " + RESET + q.getAuthor());
             showMessage(PURPLE + BOLD + "TEMAS : " + RESET + String.join(", ", q.getTopics()));
+            showMessage(PURPLE + BOLD + "FECHA DE CREACIÓN : " + RESET + q.getCreationDate().format(FECHA_FORMATO));
         }
 
         // Enunciado
