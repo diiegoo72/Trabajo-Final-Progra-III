@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class Examen {
 
+    // Atributos
     private final int numPreguntas;
     private final ArrayList<Question> preguntas;
     private final long startTime;
@@ -12,9 +13,7 @@ public class Examen {
     private int incorrectas;
     private int noContestadas;
 
-    // -----------------------------
     // Constructor
-    // -----------------------------
     public Examen(ArrayList<Question> preguntas, int numPreguntas) {
         this.preguntas = preguntas;
         this.numPreguntas = numPreguntas;
@@ -24,9 +23,7 @@ public class Examen {
         this.noContestadas = 0;
     }
 
-    // -----------------------------
     // Getters
-    // -----------------------------
     public int getNumPreguntas() {
         return numPreguntas;
     }
@@ -51,9 +48,7 @@ public class Examen {
         return (endTime - startTime) / 1000;
     }
 
-    // -----------------------------
-    // Setters internos (solo modelo)
-    // -----------------------------
+    // Métodos para incrementar contadores
     public void incrementarAcertadas() {
         acertadas++;
     }
@@ -66,15 +61,13 @@ public class Examen {
         noContestadas++;
     }
 
+    // Método para finalizar el examen
     public void finalizarExamen() {
         this.endTime = System.currentTimeMillis();
     }
 
-    // -----------------------------
-    // Cálculo de nota
-    // -----------------------------
+    // Método para calcular la nota final
     public double calcularNota() {
-        // Cada pregunta vale 10 / numPreguntas
         double valorPregunta = 10.0 / numPreguntas;
         double penalizacion = (valorPregunta / 3.0) * incorrectas;
 
@@ -85,11 +78,8 @@ public class Examen {
         return nota;
     }
 
-    // -----------------------------
-    // Método resumen
-    // -----------------------------
+    // Método para obtener el resumen del examen
     public String getResumen() {
-        // Códigos de colores ANSI
         final String RESET = "\u001B[0m";
         final String RED = "\u001B[31m";
         final String GREEN = "\u001B[32m";

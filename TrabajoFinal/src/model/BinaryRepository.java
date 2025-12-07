@@ -36,11 +36,11 @@ public class BinaryRepository implements IRepository {
         if (q.getId() != null) {
             for (Question existing : questions) {
                 if (existing != null && existing.getId() != null && existing.getId().equals(q.getId())) {
-                    return; // Pregunta duplicada
+                    return;
                 }
             }
         } else {
-            return; // Pregunta sin id
+            return; // No se permite agregar preguntas sin id
         }
 
         // Añadir y guardar
@@ -84,7 +84,7 @@ public class BinaryRepository implements IRepository {
             questions = new ArrayList<>();
             return questions;
         }
-        
+        // Leer el archivo binario
         try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(ruta))) {
             Object obj = ois.readObject();
 
@@ -103,7 +103,7 @@ public class BinaryRepository implements IRepository {
             return questions;
 
         } catch (IOException | ClassNotFoundException e) {
-            throw new RepositoryException("Error al leer las preguntas", e);
+            throw new RepositoryException("Error al leer las preguntas: " + e.getMessage(), e);
         }
     }
 

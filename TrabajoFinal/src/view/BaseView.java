@@ -1,6 +1,8 @@
 package view;
 
 import controller.Controller;
+import model.Question;
+import view.InteractiveView.ModoPregunta;
 
 
 public abstract class BaseView {
@@ -10,15 +12,24 @@ public abstract class BaseView {
     // Métodos abstractos para implementar en las vistas concretas
     public abstract void init();
 
-    public abstract void showMessage(String msg);
+    protected abstract void showMessage(String msg);
 
-    public abstract void showErrorMessage(String msg);
+    protected abstract void showErrorMessage(String msg);
 
-    public abstract void end();
+    protected abstract void showGoodMessage(String string);
+    
+    protected abstract void end();
 
-    // Setter para el controlador
+    protected abstract void mostrarPregunta(Question q, int index, ModoPregunta modo);
+
+    protected abstract void listarPreguntasPorTema();
+
+    protected abstract void listarPreguntasEnOrdenDeFecha();
+
+    // Setter del controlador
     public void setController(Controller controller) {
         this.controller = controller;
     }
+
 
 }

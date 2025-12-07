@@ -18,6 +18,7 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
 
     Path ruta = Paths.get(System.getProperty("user.home"));
 
+    // Método para establecer la ruta base donde se guardarán los archivos
     public void setRuta(String ruta) {
         if (ruta == null || ruta.trim().isEmpty()) {
             this.ruta = Paths.get(System.getProperty("user.home"));
@@ -26,6 +27,7 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
         }
     }
 
+    // Método para exportar preguntas a un archivo JSON
     @Override
     public void exportQuestions(ArrayList<Question> questions, String archivo) throws QuestionBackupIOException {
 
@@ -55,15 +57,17 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
         }
     }
 
+    // Método para obtener la descripción del tipo de backup IO
     @Override
     public String getBackupIODescription() throws QuestionBackupIOException {
         return "JSON Backup IO";
     }
 
+    // Método para importar preguntas desde un archivo JSON
     @Override
     public ArrayList<Question> importQuestions(String archivo) throws QuestionBackupIOException {
 
-        // 1. Validar nombre
+        // Validar nombre
         if (archivo == null || archivo.isBlank()) {
             throw new QuestionBackupIOException("El nombre del archivo no puede estar vacío.");
         }
@@ -71,19 +75,19 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
             throw new QuestionBackupIOException("El nombre del archivo no debe contener rutas, solo el nombre.");
         }
 
-        // 2. Obtener ruta en el home del usuario SIEMPRE
+        // Obtener ruta en el home del usuario SIEMPRE
         Path ruta = this.ruta.resolve(archivo); // <--- SIEMPRE en HOME
 
-        // 3. Validar existencia
+        // Validar existencia
         if (!Files.exists(ruta) || Files.isDirectory(ruta)) {
             throw new QuestionBackupIOException("El archivo no existe o es un directorio: " + ruta);
         }
 
         try {
-            // 4. Leer archivo JSON
+            // Leer archivo JSON
             String json = Files.readString(ruta, StandardCharsets.UTF_8);
 
-            // 5. Parsear JSON
+            // Parsear JSON
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                     .setPrettyPrinting()
@@ -92,7 +96,7 @@ public class JSONQuestionBackupIO implements QuestionBackupIO {
             }.getType();
             ArrayList<Question> questions = gson.fromJson(json, listType);
 
-            // 6. Devolver lista NO nula
+            // Devolver lista NO nula
             return (questions != null) ? questions : new ArrayList<>();
 
         } catch (IOException e) {

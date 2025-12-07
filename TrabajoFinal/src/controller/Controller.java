@@ -25,15 +25,14 @@ public class Controller {
         this.view.setController(this);
     }
 
-    // Métodos
+    // Método para iniciar la aplicación
     public void start() throws RepositoryException {
-        // Iniciar la vista de la aplicación
         view.init();
     }
 
+    // Método para finalizar la aplicación
     public void end() throws RepositoryException {
         model.saveQuestions();
-        view.end();
     }
 
     // Método para crear opciones desde la vista
@@ -52,72 +51,67 @@ public class Controller {
         return model.getAllQuestions();
     }
 
+    // Método para modificar una pregunta
     public void modifyQuestion(Question p) throws RepositoryException {
         model.modifyQuestion(p);
     }
 
+    // Método para eliminar una pregunta
     public void removeQuestion(Question p) throws RepositoryException {
         model.removeQuestion(p);
     }
 
+    // Método para exportar preguntas
     public void exportQuestions(String archivo) throws QuestionBackupIOException, RepositoryException {
         model.exportQuestions(archivo);
     }
 
+    // Método para importar preguntas
     public void importQuestions(String archivoImport) throws QuestionBackupIOException, RepositoryException {
         model.importQuestions(archivoImport);
     }
 
-    // -----------------------------
-    // TEMAS Y PREGUNTAS
-    // -----------------------------
+    // Método para obtener los temas disponibles
     public HashSet<String> getAvailableTopics() throws RepositoryException {
         return model.getAvailableTopics();
     }
 
+    // Método para obtener el número máximo de preguntas de un tema
     public int getMaxQuestions(String tema) throws RepositoryException {
         return model.getMaxQuestions(tema);
     }
 
-    // -----------------------------
-    // INICIAR EXAMEN
-    // -----------------------------
+    // Método para iniciar un examen
     public void iniciarExamen(String tema, int numPreguntas) {
         model.iniciarExamen(tema, numPreguntas);
     }
 
-    // -----------------------------
-    // OBTENER PREGUNTA ACTUAL
-    // -----------------------------
+    // Método para obtener una pregunta del examen
     public Question getPregunta(int index) {
         return model.getPregunta(index);
     }
 
-    // -----------------------------
-    // RESPONDER PREGUNTA
-    // -----------------------------
+    // Método para dar feedback a de una respuesta a una pregunta del examen
     public String responderPregunta(int index, String respuesta) {
         return model.responderPregunta(index, respuesta);
     }
 
-    // -----------------------------
-    // FINALIZAR EXAMEN
-    // -----------------------------
+    // Método para finalizar un examen
     public void finalizarExamen() {
         model.finalizarExamen();
     }
 
-    // -----------------------------
-    // RESULTADOS
-    // -----------------------------
+    // Método para obtener el examen actual
     public Examen getExamen() {
         return model.getExamen();
     }
 
+    // Método para crear una pregunta nueva con IA
     public Question createQuestion(String tema, String modelo) throws QuestionCreatorException {
         return model.createQuestion(tema, modelo);
     }
 
+    // Método para obtener los modelos disponibles de IA
     public ArrayList<String> getModelosDisponibles() {
         return model.getModelosDisponibles();
     }

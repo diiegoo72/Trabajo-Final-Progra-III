@@ -11,8 +11,7 @@ public class Model {
     private QuestionBackupIO backupHandler;
     private ArrayList<QuestionCreator> questionCreators;
     private ArrayList<Question> allQuestions;
-    private Examen examenActual;           
-
+    private Examen examenActual;
 
     public Model(IRepository repository, QuestionBackupIO backupHandler, ArrayList<QuestionCreator> questionCreators) {
         this.repository = repository;
@@ -44,23 +43,28 @@ public class Model {
         return repository.getAllQuestions();
     }
 
+    // Método para guardar las preguntas en el repositorio
     public void saveQuestions() throws RepositoryException {
         repository.saveQuestions();
     }
 
+    // Método para modificar una pregunta en el repositorio
     public void modifyQuestion(Question p) throws RepositoryException {
         repository.modifyQuestion(p);
     }
 
+    // Método para eliminar una pregunta del repositorio
     public void removeQuestion(Question p) throws RepositoryException {
         repository.removeQuestion(p);
     }
 
+    // Método para exportar preguntas a un archivo
     public void exportQuestions(String archivo) throws QuestionBackupIOException, RepositoryException {
         ArrayList<Question> preguntas = getAllQuestions();
         backupHandler.exportQuestions(preguntas, archivo);
     }
 
+    // Método para importar preguntas desde un archivo
     public void importQuestions(String archivoImport) throws QuestionBackupIOException, RepositoryException {
         ArrayList<Question> preguntas = backupHandler.importQuestions(archivoImport);
         for (Question pregunta : preguntas) {
@@ -68,12 +72,10 @@ public class Model {
         }
     }
 
-    // -----------------------------
-    // Obtener todos los temas disponibles
-    // -----------------------------
+    // Método para obtener los temas disponibles
     public HashSet<String> getAvailableTopics() throws RepositoryException {
         HashSet<String> topics = new HashSet<>();
-        allQuestions = getAllQuestions();  // Obtener preguntas del repositorio
+        allQuestions = getAllQuestions();
 
         for (Question q : allQuestions) {
             topics.addAll(q.getTopics());
@@ -82,9 +84,7 @@ public class Model {
         return topics;
     }
 
-    // -----------------------------
-    // Obtener número máximo de preguntas para un tema
-    // -----------------------------
+    // Método para obtener el número máximo de preguntas para un tema dado
     public int getMaxQuestions(String tema) throws RepositoryException {
         if (tema.equals("TODOS LOS TEMAS")) {
             return allQuestions.size();
@@ -99,9 +99,7 @@ public class Model {
         return count;
     }
 
-    // -----------------------------
-    // Iniciar examen
-    // -----------------------------
+    // Método para iniciar un examen
     public void iniciarExamen(String tema, int numPreguntas) {
 
         // Filtrar preguntas por tema
@@ -124,64 +122,57 @@ public class Model {
         examenActual = new Examen(seleccionadas, numPreguntas);
     }
 
-    // -----------------------------
-    // Obtener pregunta por índice
-    // -----------------------------
+    // Método para obtener una pregunta del examen actual
     public Question getPregunta(int index) {
-        if (examenActual == null) return null;
+        if (examenActual == null)
+            return null;
         return examenActual.getPreguntas().get(index);
     }
 
-    // -----------------------------
-    // Responder pregunta
-    // -----------------------------
-public String responderPregunta(int index, String respuesta) {
-    // Códigos de colores ANSI
-    final String RESET = "\u001B[0m";
-    final String RED = "\u001B[31m";
-    final String GREEN = "\u001B[32m";
+    // Método para responder una pregunta del examen actual
+    public String responderPregunta(int index, String respuesta) {
+        // Códigos de colores ANSI
+        final String RESET = "\u001B[0m";
+        final String RED = "\u001B[31m";
+        final String GREEN = "\u001B[32m";
 
-    Question pregunta = examenActual.getPreguntas().get(index);
+        Question pregunta = examenActual.getPreguntas().get(index);
 
-    // Si no contesta
-    if (respuesta.isEmpty()) {
-        examenActual.incrementarNoContestadas();
-        return "\nNo has respondido esta pregunta.";
-    }
+        // Si no contesta
+        if (respuesta.isEmpty()) {
+            examenActual.incrementarNoContestadas();
+            return "\nNo has respondido esta pregunta.";
+        }
 
-    // Buscar opción seleccionada
-    for (Option op : pregunta.getOptions()) {
-        if (op.getUserAnswer().equalsIgnoreCase(respuesta)) {
+        // Buscar opción seleccionada
+        for (Option op : pregunta.getOptions()) {
+            if (op.getUserAnswer().equalsIgnoreCase(respuesta)) {
 
-            if (op.isCorrect()) {
-                examenActual.incrementarAcertadas();
-                return GREEN + "\n¡Respuesta correcta! (" + op.getRationale() + ")" + RESET;
-            } else {
-                examenActual.incrementarIncorrectas();
-                return RED + "\nRespuesta incorrecta (" + op.getRationale() + ")" + RESET;
+                if (op.isCorrect()) {
+                    examenActual.incrementarAcertadas();
+                    return GREEN + "\n¡Respuesta correcta! (" + op.getRationale() + ")" + RESET;
+                } else {
+                    examenActual.incrementarIncorrectas();
+                    return RED + "\nRespuesta incorrecta (" + op.getRationale() + ")" + RESET;
+                }
             }
         }
+        return "";
     }
-    return "";
-}
 
-
-    // -----------------------------
-    // Finalizar examen (para medir tiempo)
-    // -----------------------------
+    // Método para finalizar el examen actual
     public void finalizarExamen() {
         if (examenActual != null) {
             examenActual.finalizarExamen();
         }
     }
 
-    // -----------------------------
-    // Obtener examen para resultados finales
-    // -----------------------------
+    // Método para obtener el examen actual
     public Examen getExamen() {
         return examenActual;
     }
 
+    // Método para crear una pregunta usando un modelo específico de IA
     public Question createQuestion(String tema, String modelo) throws QuestionCreatorException {
         for (QuestionCreator qc : questionCreators) {
             if (qc.getQuestionCreatorDescription().contains(modelo)) {
@@ -189,10 +180,11 @@ public String responderPregunta(int index, String respuesta) {
             }
         }
         throw new QuestionCreatorException("No se encontró un creador de preguntas para el modelo: " + modelo);
-        
+
     }
 
-    public ArrayList<String> getModelosDisponibles(){
+    // Método para obtener los modelos de IA disponibles
+    public ArrayList<String> getModelosDisponibles() {
         ArrayList<String> modelos = new ArrayList<>();
         for (QuestionCreator qc : questionCreators) {
             modelos.add(qc.getQuestionCreatorDescription());
@@ -201,4 +193,3 @@ public String responderPregunta(int index, String respuesta) {
     }
 
 }
-

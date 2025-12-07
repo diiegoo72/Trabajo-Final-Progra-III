@@ -18,6 +18,7 @@ import model.RepositoryException;
 
 public class InteractiveView extends BaseView {
 
+    // Códigos de colores para la consola
     private static final String RESET = "\u001B[0m";
     private static final String BOLD = "\u001B[1m";
 
@@ -29,10 +30,17 @@ public class InteractiveView extends BaseView {
     private static final String RED = "\u001B[31m";
     private static final String ORANGE = "\u001B[38;5;208m";
 
+    // Método de finalización de la vista interactiva
     @Override
-    public void end() {
-        showGoodMessage("\nGracias por usar la aplicación. ¡Hasta pronto!");
-
+    protected void end() {
+        try {
+            controller.end();
+            showGoodMessage(BLUE + "¡Preguntas guardadas correctamente en el repositorio!" + RESET);
+        } catch (RepositoryException e) {
+            e.printStackTrace();
+            showErrorMessage("Error al guardar las preguntas en el repositorio: " + e.getMessage());
+        }
+        showGoodMessage("Gracias por usar la aplicación. ¡Hasta pronto!");
     }
 
     // Método para iniciar la vista interactiva
@@ -45,11 +53,10 @@ public class InteractiveView extends BaseView {
         try {
             questions = controller.getAllQuestions();
         } catch (RepositoryException e) {
-            e.printStackTrace();
             showErrorMessage("Error al cargar las preguntas del repositorio: " + e.getMessage());
         }
 
-        // Mensaje claro sobre el estado del repositorio
+        // Mostrar mensaje de carga de preguntas
         if (questions != null && !questions.isEmpty()) {
             showGoodMessage("Se han cargado " + questions.size() + " preguntas desde el repositorio.");
         } else {
@@ -62,31 +69,95 @@ public class InteractiveView extends BaseView {
         end();
     }
 
+    // Método para mostrar un mensaje de error
     @Override
-    public void showErrorMessage(String msg) {
+    protected void showErrorMessage(String msg) {
         System.err.println(RED + "\n" + msg + RESET);
     }
 
+    // Método para mostrar un mensaje informativo
     @Override
-    public void showMessage(String msg) {
+    protected void showMessage(String msg) {
         System.out.println(msg);
     }
 
-    private void showGoodMessage(String string) {
+    // Método para mostrar un mensaje de éxito
+    @Override
+    protected void showGoodMessage(String string) {
         System.out.println(GREEN + "\n" + string + RESET);
     }
 
+    // Método para vaciar la pantalla de la consola
     private void vaciarPantalla() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
+    // Método para esperar un input del usuario
     private void waitForUserInput() {
         showMessage("\n[ Presiona ENTER para continuar ]");
         readString("");
     }
 
-    public void bannerInicio() {
+    // Modo de visualización de preguntas
+    public enum ModoPregunta {
+        COMPLETA,
+        SIMPLE
+    }
+
+    // Método para mostrar una pregunta en detalle o de forma simple
+    @Override
+    protected void mostrarPregunta(Question q, int index, ModoPregunta modo) {
+        DateTimeFormatter FECHA_FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        boolean detallado = (modo == ModoPregunta.COMPLETA);
+
+        // Título
+        if (index > 0) {
+            showMessage(CYAN + BOLD + "\n================== PREGUNTA " + index + " ==================" + RESET);
+        } else {
+            showMessage(CYAN + BOLD + "\n=============== DETALLES DE LA PREGUNTA ================" + RESET);
+        }
+
+        // Autor y temas
+        if (detallado) {
+            showMessage(PURPLE + BOLD + "AUTOR : " + RESET + q.getAuthor());
+        }
+        showMessage(PURPLE + BOLD + "TEMA/S : " + RESET + String.join(", ", q.getTopics()));
+        showMessage(PURPLE + BOLD + "FECHA DE CREACIÓN : " + RESET + q.getCreationDate().format(FECHA_FORMATO));
+
+        // Enunciado
+        showMessage(YELLOW + BOLD + "\nENUNCIADO: " + RESET + q.getStatement());
+
+        // Opciones
+        showMessage(BLUE + BOLD + "\nOPCIONES:" + RESET);
+        List<Option> opts = q.getOptions();
+
+        for (int i = 0; i < opts.size(); i++) {
+            Option option = opts.get(i);
+            char letter = (char) ('A' + i);
+
+            boolean correcta = option.isCorrect();
+
+            // Solo en modo detallado la opción correcta se ve en verde
+            String color = (detallado && correcta) ? GREEN + BOLD : RESET;
+
+            showMessage(" " + color + letter + ") " + option.getText() + RESET);
+        }
+
+        // Justificaciones solo en modo detallado
+        if (detallado) {
+            showMessage(PURPLE + BOLD + "\nJUSTIFICACIONES:" + RESET);
+            for (Option option : q.getOptions()) {
+                String color = option.isCorrect() ? GREEN : RESET;
+                showMessage(" " + color + "- " + option.getRationale() + RESET);
+            }
+        }
+
+        showMessage(CYAN + BOLD + "\n================================================\n" + RESET);
+    }
+
+    // BANNERS DE LAS DISTINTAS SECCIONES
+    private void bannerInicio() {
         vaciarPantalla();
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
@@ -114,7 +185,7 @@ public class InteractiveView extends BaseView {
         showMessage(banner.toString());
     }
 
-    public void bannerMenuPrincipal() {
+    private void bannerMenuPrincipal() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("  __  __ ___ _  _   __    ___ ___ ___ _  _  ___ ___ ___  _   _    \r\n" + //
@@ -126,7 +197,7 @@ public class InteractiveView extends BaseView {
         showMessage(YELLOW + BOLD + banner.toString() + RESET);
     }
 
-    public void bannerMenuCRUD() {
+    private void bannerMenuCRUD() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("   ___ ___ _   _ ___    ___                       _           \r\n" + //
@@ -138,7 +209,7 @@ public class InteractiveView extends BaseView {
         showMessage(ORANGE + BOLD + banner.toString() + RESET);
     }
 
-    public void bannerCrearNuevaPregunta() {
+    private void bannerCrearNuevaPregunta() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("   ___                                            ___                       _        \r\n" + //
@@ -151,7 +222,7 @@ public class InteractiveView extends BaseView {
         showMessage(BLUE + BOLD + banner.toString() + RESET);
     }
 
-    public void bannerMenuListarPreguntas() {
+    private void bannerMenuListarPreguntas() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("  _    _    _              ___                       _           \r\n" + //
@@ -163,7 +234,7 @@ public class InteractiveView extends BaseView {
         showMessage(PURPLE + BOLD + banner.toString() + RESET);
     }
 
-    public void bannerMenuDetallesPregunta() {
+    private void bannerMenuDetallesPregunta() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("  __  __         _ _  __ _               ___                       _        \r\n" + //
@@ -175,7 +246,7 @@ public class InteractiveView extends BaseView {
         showMessage(CYAN + BOLD + banner.toString() + RESET);
     }
 
-    public void bannerMenuImpExp() {
+    private void bannerMenuImpExp() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("  ___                     _                __  ___                   _            \r\n" + //
@@ -187,7 +258,7 @@ public class InteractiveView extends BaseView {
         showMessage(ORANGE + BOLD + banner.toString() + RESET);
     }
 
-    public void bannerModoExamen() {
+    private void bannerModoExamen() {
         StringBuilder banner = new StringBuilder();
         banner.append("\n");
         banner.append("  __  __  ___  ___   ___    _____  __   _   __  __ ___ _  _ \r\n" + //
@@ -199,9 +270,7 @@ public class InteractiveView extends BaseView {
         showMessage(ORANGE + BOLD + banner.toString() + RESET);
     }
 
-    // -------------------------
-    // --------- MENÚS ---------
-    // -------------------------
+    // MENÚ PRINCIPAL
     private void mostrarMenuPrincipal() {
         boolean salir = false;
         while (!salir) {
@@ -234,6 +303,323 @@ public class InteractiveView extends BaseView {
                     showErrorMessage("Opción no válida. Intente de nuevo.");
                     waitForUserInput();
             }
+        }
+    }
+
+    // Menú CRUD de preguntas
+    private void mostrarMenuCRUD() {
+        boolean salir = false;
+        while (!salir) {
+            vaciarPantalla();
+            bannerMenuCRUD();
+            showMessage("[1] Crear nueva pregunta");
+            showMessage("[2] Listar preguntas existentes");
+            showMessage("[3] Ver detalles de una pregunta");
+            showMessage("[4] Volver al menú principal");
+            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
+            switch (opcion) {
+                case "1":
+                    crearNuevaPregunta();
+                    break;
+                case "2":
+                    mostrarMenuListarPreguntas();
+                    break;
+                case "3":
+                    listarPreguntasEnOrdenDeFecha();
+                    mostrarDetallesPregunta();
+                    break;
+                case "4":
+                    salir = true;
+                    break;
+                default:
+                    showErrorMessage("Opción no válida. Intente de nuevo.");
+                    waitForUserInput();
+            }
+        }
+    }
+
+    // Crear una nueva pregunta
+    private void crearNuevaPregunta() {
+        vaciarPantalla();
+        bannerCrearNuevaPregunta();
+        showMessage("");
+        String author = readString_ne("> Ingrese el autor de la pregunta: ");
+        String statement = readString_ne("> Ingrese el enunciado de la pregunta: ");
+        int n = readInt("> Ingrese el número de temas de la pregunta: ");
+        HashSet<String> topics = new HashSet<>();
+        for (int i = 0; i < n; i++) {
+            String topic = readString_ne("> Ingrese el tema " + (i + 1) + ": ");
+            topic = topic.toUpperCase();
+            topics.add(topic);
+        }
+        String opcionA = readString_ne("> Ingrese la opción A: ");
+        String opcionB = readString_ne("> Ingrese la opción B: ");
+        String opcionC = readString_ne("> Ingrese la opción C: ");
+        String opcionD = readString_ne("> Ingrese la opción D: ");
+        String rationaleA = readString_ne("> Ingrese la justificación para la opción A: ");
+        String rationaleB = readString_ne("> Ingrese la justificación para la opción B: ");
+        String rationaleC = readString_ne("> Ingrese la justificación para la opción C: ");
+        String rationaleD = readString_ne("> Ingrese la justificación para la opción D: ");
+        String correctOption;
+        do {
+            correctOption = readString_ne("> Ingrese la opción correcta (A/B/C/D): ");
+        } while (!correctOption.equalsIgnoreCase("A")
+                && !correctOption.equalsIgnoreCase("B")
+                && !correctOption.equalsIgnoreCase("C")
+                && !correctOption.equalsIgnoreCase("D"));
+
+        // Crear las opciones
+        List<Option> options = controller.createOptions(opcionA, rationaleA, opcionB, rationaleB, opcionC, rationaleC,
+                opcionD, rationaleD, correctOption);
+
+        // Crear la pregunta y agregarla al repositorio
+        try {
+            controller.addQuestion(new Question(author, topics, statement, options));
+            showGoodMessage("\nPregunta creada y guardada exitosamente.");
+        } catch (RepositoryException e) {
+            showErrorMessage("Error en el repositorio: " + e.getMessage());
+        }
+        waitForUserInput();
+    }
+
+    // Menú para listar preguntas
+    private void mostrarMenuListarPreguntas() {
+        boolean salir = false;
+        while (!salir) {
+            vaciarPantalla();
+            bannerMenuListarPreguntas();
+            showMessage("[1] Listar todas las preguntas por orden de fecha de creación");
+            showMessage("[2] Listar preguntas por tema");
+            showMessage("[3] Volver al menú anterior");
+            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
+            switch (opcion) {
+                case "1":
+                    listarPreguntasEnOrdenDeFecha();
+                    waitForUserInput();
+                    break;
+                case "2":
+                    listarPreguntasPorTema();
+                    waitForUserInput();
+                    break;
+                case "3":
+                    salir = true;
+                    break;
+                default:
+                    showErrorMessage("Opción no válida. Intente de nuevo.");
+                    waitForUserInput();
+            }
+        }
+
+    }
+
+    // Listar preguntas filtradas por tema
+    @Override
+    protected void listarPreguntasPorTema() {
+        // Temas disponibles
+        HashSet<String> temasDisponibles = new HashSet<>();
+        try {
+            temasDisponibles = controller.getAvailableTopics();
+        } catch (RepositoryException e) {
+            showErrorMessage("Error al obtener los temas: " + e.getMessage());
+            return;
+        }
+
+        ArrayList<String> temasLista = new ArrayList<>(temasDisponibles);
+
+        if (temasLista.isEmpty()) {
+            showErrorMessage("No hay preguntas disponibles en el repositorio.");
+            return;
+        }
+
+        showMessage(BLUE + "\n --- TEMAS A ELEGIR ---" + RESET);
+        for (int i = 1; i <= temasLista.size(); i++) {
+            showMessage(temasLista.get(i - 1));
+        }
+        // Selección de tema
+        String tema = readString_ne("\n>>> Ingrese el tema por el cual filtrar las preguntas -> ");
+        tema = tema.toUpperCase();
+
+        // Listar preguntas del tema seleccionado
+        try {
+            List<Question> preguntas = controller.getAllQuestions();
+            boolean encontrado = false;
+            showMessage("\n[ PREGUNTAS FILTRADAS POR TEMA: " + tema + " ]\n");
+            for (int i = 0; i < preguntas.size(); i++) {
+                Question q = preguntas.get(i);
+                if (q.getTopics().contains(tema)) {
+                    mostrarPregunta(q, i + 1, ModoPregunta.SIMPLE);
+                    encontrado = true;
+                }
+            }
+            if (!encontrado) {
+                showErrorMessage("No se encontraron preguntas para el tema especificado.");
+            }
+        } catch (RepositoryException e) {
+            showErrorMessage("Error en el repositorio: " + e.getMessage());
+        }
+    }
+
+    // Listar todas las preguntas por orden de fecha de creación
+    @Override
+    protected void listarPreguntasEnOrdenDeFecha() {
+        vaciarPantalla();
+        bannerMenuListarPreguntas();
+        try {
+            List<Question> preguntas = controller.getAllQuestions();
+            if (preguntas.isEmpty()) {
+                showErrorMessage("No hay preguntas disponibles.");
+                return;
+            }
+            showMessage("[ PREGUNTAS ORDENADAS POR FECHA DE CREACIÓN ]\n");
+
+            // Ordenamos por creationDate (más antiguas → más nuevas)
+            preguntas.sort((p1, p2) -> p1.getCreationDate().compareTo(p2.getCreationDate()));
+
+            for (int i = 0; i < preguntas.size(); i++) {
+                mostrarPregunta(preguntas.get(i), i + 1, ModoPregunta.SIMPLE);
+            }
+        } catch (RepositoryException e) {
+            showErrorMessage("Error en el repositorio: " + e.getMessage());
+        }
+    }
+
+    // Mostrar detalles de una pregunta específica
+    private void mostrarDetallesPregunta() {
+        try {
+            ArrayList<Question> preguntas = controller.getAllQuestions();
+            if (preguntas.isEmpty()) {
+                showErrorMessage("No hay preguntas disponibles en el repositorio.");
+                waitForUserInput();
+                return;
+            }
+            int index = readInt("\n>>> Ingrese el número de la pregunta para ver sus detalles -> ");
+            if (index < 1 || index > preguntas.size()) {
+                showErrorMessage("Número de pregunta inválido.");
+                waitForUserInput();
+            } else {
+                mostrarMenuDetallesPregunta(preguntas.get(index - 1));
+            }
+        } catch (RepositoryException e) {
+            showErrorMessage("Error en el repositorio: " + e.getMessage());
+            waitForUserInput();
+        }
+
+    }
+
+    // Menú para ver/modificar/eliminar una pregunta específica
+    private void mostrarMenuDetallesPregunta(Question p) {
+        boolean salir = false;
+        while (!salir) {
+            vaciarPantalla();
+            bannerMenuDetallesPregunta();
+            mostrarPregunta(p, 0, ModoPregunta.COMPLETA);
+            showMessage("\n");
+            showMessage("[1] Modificar algún atributo de la pregunta");
+            showMessage("[2] Eliminar la pregunta");
+            showMessage("[3] Volver al menú anterior");
+            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
+            switch (opcion) {
+                case "1":
+                    mostrarMenuModificarPregunta(p);
+                    waitForUserInput();
+                    break;
+                case "2":
+                    try {
+                        controller.removeQuestion(p);
+                        showGoodMessage("Pregunta eliminada exitosamente.");
+                        salir = true;
+                    } catch (RepositoryException e) {
+                        showErrorMessage("Error en el repositorio: " + e.getMessage());
+                    }
+                    waitForUserInput();
+                    break;
+                case "3":
+                    salir = true;
+                    break;
+                default:
+                    showErrorMessage("Opción no válida. Intente de nuevo.");
+                    waitForUserInput();
+            }
+        }
+    }
+
+    // Menú para modificar los atributos de una pregunta específica
+    private void mostrarMenuModificarPregunta(Question p) {
+        boolean salir = false;
+        while (!salir) {
+            vaciarPantalla();
+            bannerMenuDetallesPregunta();
+            mostrarPregunta(p, 0, ModoPregunta.COMPLETA);
+            showMessage("\n");
+            showMessage("[1] Modificar autor");
+            showMessage("[2] Modificar enunciado");
+            showMessage("[3] Modificar temas");
+            showMessage("[4] Modificar opciones");
+            showMessage("[5] Guardar cambios y volver al menú anterior");
+            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
+
+            switch (opcion) {
+                case "1":
+                    String nuevoAutor = readString_ne(">>> Ingrese el nuevo autor -> ");
+                    p.setAuthor(nuevoAutor);
+                    showGoodMessage("¡Autor modificado correctamente!");
+                    waitForUserInput();
+                    break;
+                case "2":
+                    String nuevoEnunciado = readString_ne(">>> Ingrese el nuevo enunciado -> ");
+                    p.setStatement(nuevoEnunciado);
+                    showGoodMessage("¡Enunciado modificado correctamente!");
+                    waitForUserInput();
+                    break;
+                case "3":
+                    int n = readInt(">>> Ingrese el número de temas de la pregunta -> ");
+                    HashSet<String> nuevosTemas = new HashSet<>();
+                    for (int i = 0; i < n; i++) {
+                        String tema = readString_ne(">>> Ingrese el tema " + (i + 1) + " -> ");
+                        tema = tema.toUpperCase();
+                        nuevosTemas.add(tema);
+                    }
+                    p.setTopics(nuevosTemas);
+                    showGoodMessage("¡Temas modificados correctamente!");
+                    waitForUserInput();
+                    break;
+                case "4":
+                    String opcionA = readString_ne(">>> Ingrese la opción A -> ");
+                    String opcionB = readString_ne(">>> Ingrese la opción B -> ");
+                    String opcionC = readString_ne(">>> Ingrese la opción C -> ");
+                    String opcionD = readString_ne(">>> Ingrese la opción D -> ");
+                    String rationaleA = readString_ne(">>> Ingrese la justificación para la opción A -> ");
+                    String rationaleB = readString_ne(">>> Ingrese la justificación para la opción B -> ");
+                    String rationaleC = readString_ne(">>> Ingrese la justificación para la opción C -> ");
+                    String rationaleD = readString_ne(">>> Ingrese la justificación para la opción D -> ");
+                    String correctOption;
+                    do {
+                        correctOption = readString_ne(">>> Ingrese la opción correcta (A/B/C/D) -> ");
+                    } while (!correctOption.equalsIgnoreCase("A")
+                            && !correctOption.equalsIgnoreCase("B")
+                            && !correctOption.equalsIgnoreCase("C")
+                            && !correctOption.equalsIgnoreCase("D"));
+
+                    // Crear las opciones
+                    List<Option> options = controller.createOptions(opcionA, rationaleA, opcionB, rationaleB, opcionC,
+                            rationaleC, opcionD, rationaleD, correctOption);
+                    p.setOptions(options);
+                    showGoodMessage("¡Opciones modificadas correctamente!");
+                    waitForUserInput();
+                    break;
+                case "5":
+                    salir = true;
+                    try {
+                        controller.modifyQuestion(p);
+                    } catch (RepositoryException e) {
+                        showErrorMessage("Error en el repositorio: " + e.getMessage());
+                    }
+                    break;
+                default:
+                    showErrorMessage("Opción no válida. Intente de nuevo.");
+                    waitForUserInput();
+            }
+
         }
     }
 
@@ -321,9 +707,7 @@ public class InteractiveView extends BaseView {
             }
         }
 
-        // -----------------------------
         // Número de preguntas
-        // -----------------------------
         int maxPreguntas;
         try {
             maxPreguntas = controller.getMaxQuestions(temaSeleccionado);
@@ -369,9 +753,7 @@ public class InteractiveView extends BaseView {
             waitForUserInput();
         }
 
-        // -----------------------------
         // Resultados finales
-        // -----------------------------
         controller.finalizarExamen();
 
         vaciarPantalla();
@@ -428,361 +810,6 @@ public class InteractiveView extends BaseView {
                     waitForUserInput();
             }
         }
-    }
-
-    private void mostrarMenuCRUD() {
-        boolean salir = false;
-        while (!salir) {
-            vaciarPantalla();
-            bannerMenuCRUD();
-            showMessage("[1] Crear nueva pregunta");
-            showMessage("[2] Listar preguntas existentes");
-            showMessage("[3] Ver detalles de una pregunta");
-            showMessage("[4] Volver al menú principal");
-            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
-            switch (opcion) {
-                case "1":
-                    crearNuevaPregunta();
-                    break;
-                case "2":
-                    mostrarMenuListarPreguntas();
-                    break;
-                case "3":
-                    listarPreguntasEnOrdenDeFecha();
-                    mostrarDetallesPregunta();
-                    break;
-                case "4":
-                    salir = true;
-                    break;
-                default:
-                    showErrorMessage("Opción no válida. Intente de nuevo.");
-                    waitForUserInput();
-            }
-        }
-    }
-
-    private void mostrarMenuListarPreguntas() {
-        boolean salir = false;
-        while (!salir) {
-            vaciarPantalla();
-            bannerMenuListarPreguntas();
-            showMessage("[1] Listar todas las preguntas por orden de fecha de creación");
-            showMessage("[2] Listar preguntas por tema");
-            showMessage("[3] Volver al menú anterior");
-            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
-            switch (opcion) {
-                case "1":
-                    listarPreguntasEnOrdenDeFecha();
-                    waitForUserInput();
-                    break;
-                case "2":
-                    listarPreguntasPorTema();
-                    waitForUserInput();
-                    break;
-                case "3":
-                    salir = true;
-                    break;
-                default:
-                    showErrorMessage("Opción no válida. Intente de nuevo.");
-                    waitForUserInput();
-            }
-        }
-
-    }
-
-    private void mostrarDetallesPregunta() {
-        int index = readInt("\n>>> Ingrese el número de la pregunta para ver sus detalles -> ");
-        try {
-            ArrayList<Question> preguntas = controller.getAllQuestions();
-            if (index < 1 || index > preguntas.size()) {
-                showErrorMessage("Número de pregunta inválido.");
-                waitForUserInput();
-            } else {
-                mostrarMenuDetallesPregunta(preguntas.get(index - 1));
-            }
-        } catch (RepositoryException e) {
-            showErrorMessage("Error en el repositorio: " + e.getMessage());
-            waitForUserInput();
-        }
-
-    }
-
-    private void mostrarMenuDetallesPregunta(Question p) {
-        boolean salir = false;
-        while (!salir) {
-            vaciarPantalla();
-            bannerMenuDetallesPregunta();
-            mostrarPregunta(p, 0, ModoPregunta.COMPLETA);
-            showMessage("\n");
-            showMessage("[1] Modificar algún atributo de la pregunta");
-            showMessage("[2] Eliminar la pregunta");
-            showMessage("[3] Volver al menú anterior");
-            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
-            switch (opcion) {
-                case "1":
-                    mostrarMenuModificarPregunta(p);
-                    waitForUserInput();
-                    break;
-                case "2":
-                    try {
-                        controller.removeQuestion(p);
-                        showGoodMessage("Pregunta eliminada exitosamente.");
-                        salir = true;
-                    } catch (RepositoryException e) {
-                        showErrorMessage("Error en el repositorio: " + e.getMessage());
-                    }
-                    waitForUserInput();
-                    break;
-                case "3":
-                    salir = true;
-                    break;
-                default:
-                    showErrorMessage("Opción no válida. Intente de nuevo.");
-                    waitForUserInput();
-            }
-        }
-    }
-
-    private void mostrarMenuModificarPregunta(Question p) {
-        boolean salir = false;
-        while (!salir) {
-            vaciarPantalla();
-            bannerMenuDetallesPregunta();
-            mostrarPregunta(p, 0, ModoPregunta.COMPLETA);
-            showMessage("\n");
-            showMessage("[1] Modificar autor");
-            showMessage("[2] Modificar enunciado");
-            showMessage("[3] Modificar temas");
-            showMessage("[4] Modificar opciones");
-            showMessage("[5] Guardar cambios y volver al menú anterior");
-            String opcion = readString_ne("\n>>> Seleccione una opción -> ");
-
-            switch (opcion) {
-                case "1":
-                    String nuevoAutor = readString_ne(">>> Ingrese el nuevo autor -> ");
-                    p.setAuthor(nuevoAutor);
-                    showGoodMessage("¡Autor modificado correctamente!");
-                    waitForUserInput();
-                    break;
-                case "2":
-                    String nuevoEnunciado = readString_ne(">>> Ingrese el nuevo enunciado -> ");
-                    p.setStatement(nuevoEnunciado);
-                    showGoodMessage("¡Enunciado modificado correctamente!");
-                    waitForUserInput();
-                    break;
-                case "3":
-                    int n = readInt(">>> Ingrese el número de temas de la pregunta -> ");
-                    HashSet<String> nuevosTemas = new HashSet<>();
-                    for (int i = 0; i < n; i++) {
-                        String tema = readString_ne(">>> Ingrese el tema " + (i + 1) + " -> ");
-                        tema = tema.toUpperCase();
-                        nuevosTemas.add(tema);
-                    }
-                    p.setTopics(nuevosTemas);
-                    showGoodMessage("¡Temas modificados correctamente!");
-                    waitForUserInput();
-                    break;
-                case "4":
-                    String opcionA = readString_ne(">>> Ingrese la opción A -> ");
-                    String opcionB = readString_ne(">>> Ingrese la opción B -> ");
-                    String opcionC = readString_ne(">>> Ingrese la opción C -> ");
-                    String opcionD = readString_ne(">>> Ingrese la opción D -> ");
-                    String rationaleA = readString_ne(">>> Ingrese la justificación para la opción A -> ");
-                    String rationaleB = readString_ne(">>> Ingrese la justificación para la opción B -> ");
-                    String rationaleC = readString_ne(">>> Ingrese la justificación para la opción C -> ");
-                    String rationaleD = readString_ne(">>> Ingrese la justificación para la opción D -> ");
-                    String correctOption;
-                    do {
-                        correctOption = readString_ne(">>> Ingrese la opción correcta (A/B/C/D) -> ");
-                    } while (!correctOption.equalsIgnoreCase("A")
-                            && !correctOption.equalsIgnoreCase("B")
-                            && !correctOption.equalsIgnoreCase("C")
-                            && !correctOption.equalsIgnoreCase("D"));
-
-                    // Crear las opciones
-                    List<Option> options = controller.createOptions(opcionA, rationaleA, opcionB, rationaleB, opcionC,
-                            rationaleC, opcionD, rationaleD, correctOption);
-                    p.setOptions(options);
-                    showGoodMessage("¡Opciones modificadas correctamente!");
-                    waitForUserInput();
-                    break;
-                case "5":
-                    salir = true;
-                    try {
-                        controller.modifyQuestion(p);
-                    } catch (RepositoryException e) {
-                        showErrorMessage("Error en el repositorio: " + e.getMessage());
-                    }
-                    break;
-                default:
-                    showErrorMessage("Opción no válida. Intente de nuevo.");
-                    waitForUserInput();
-            }
-
-        }
-    }
-
-    private void crearNuevaPregunta() {
-        vaciarPantalla();
-        bannerCrearNuevaPregunta();
-        showMessage("");
-        String author = readString_ne("> Ingrese el autor de la pregunta: ");
-        String statement = readString_ne("> Ingrese el enunciado de la pregunta: ");
-        int n = readInt("> Ingrese el número de temas de la pregunta: ");
-        HashSet<String> topics = new HashSet<>();
-        for (int i = 0; i < n; i++) {
-            String topic = readString_ne("> Ingrese el tema " + (i + 1) + ": ");
-            topic = topic.toUpperCase();
-            topics.add(topic);
-        }
-        String opcionA = readString_ne("> Ingrese la opción A: ");
-        String opcionB = readString_ne("> Ingrese la opción B: ");
-        String opcionC = readString_ne("> Ingrese la opción C: ");
-        String opcionD = readString_ne("> Ingrese la opción D: ");
-        String rationaleA = readString_ne("> Ingrese la justificación para la opción A: ");
-        String rationaleB = readString_ne("> Ingrese la justificación para la opción B: ");
-        String rationaleC = readString_ne("> Ingrese la justificación para la opción C: ");
-        String rationaleD = readString_ne("> Ingrese la justificación para la opción D: ");
-        String correctOption;
-        do {
-            correctOption = readString_ne("> Ingrese la opción correcta (A/B/C/D): ");
-        } while (!correctOption.equalsIgnoreCase("A")
-                && !correctOption.equalsIgnoreCase("B")
-                && !correctOption.equalsIgnoreCase("C")
-                && !correctOption.equalsIgnoreCase("D"));
-
-        // Crear las opciones
-        List<Option> options = controller.createOptions(opcionA, rationaleA, opcionB, rationaleB, opcionC, rationaleC,
-                opcionD, rationaleD, correctOption);
-
-        // Crear la pregunta y agregarla al repositorio
-        try {
-            controller.addQuestion(new Question(author, topics, statement, options));
-            showGoodMessage("\nPregunta creada y guardada exitosamente.");
-        } catch (RepositoryException e) {
-            showErrorMessage("Error en el repositorio: " + e.getMessage());
-        }
-        waitForUserInput();
-    }
-
-    private void listarPreguntasPorTema() {
-        // Temas disponibles
-        HashSet<String> temasDisponibles = new HashSet<>();
-        try {
-            temasDisponibles = controller.getAvailableTopics();
-        } catch (RepositoryException e) {
-            showErrorMessage("Error al obtener los temas: " + e.getMessage());
-            return;
-        }
-
-        ArrayList<String> temasLista = new ArrayList<>(temasDisponibles);
-
-        showMessage(BLUE + "\n --- TEMAS A ELEGIR ---" + RESET);
-        for (int i = 1; i <= temasLista.size(); i++) {
-            showMessage(temasLista.get(i - 1));
-        }
-        // Selección de tema
-        String tema = readString_ne("\n>>> Ingrese el tema por el cual filtrar las preguntas -> ");
-        tema = tema.toUpperCase();
-
-        // Listar preguntas del tema seleccionado
-        try {
-            List<Question> preguntas = controller.getAllQuestions();
-            boolean encontrado = false;
-            showMessage("\n[ PREGUNTAS FILTRADAS POR TEMA: " + tema + " ]\n");
-            for (int i = 0; i < preguntas.size(); i++) {
-                Question q = preguntas.get(i);
-                if (q.getTopics().contains(tema)) {
-                    mostrarPregunta(q, i + 1, ModoPregunta.SIMPLE);
-                    encontrado = true;
-                }
-            }
-            if (!encontrado) {
-                showErrorMessage("No se encontraron preguntas para el tema especificado.");
-            }
-        } catch (RepositoryException e) {
-            showErrorMessage("Error en el repositorio: " + e.getMessage());
-        }
-    }
-
-    private void listarPreguntasEnOrdenDeFecha() {
-        vaciarPantalla();
-        bannerMenuListarPreguntas();
-        try {
-            List<Question> preguntas = controller.getAllQuestions();
-            if (preguntas.isEmpty()) {
-                showErrorMessage("No hay preguntas disponibles.");
-                return;
-            }
-            showMessage("[ PREGUNTAS ORDENADAS POR FECHA DE CREACIÓN ]\n");
-
-            // Ordenamos por creationDate (más antiguas → más nuevas)
-            preguntas.sort((p1, p2) -> p1.getCreationDate().compareTo(p2.getCreationDate()));
-
-            for (int i = 0; i < preguntas.size(); i++) {
-                mostrarPregunta(preguntas.get(i), i + 1, ModoPregunta.SIMPLE);
-            }
-        } catch (RepositoryException e) {
-            showErrorMessage("Error en el repositorio: " + e.getMessage());
-        }
-    }
-
-    public enum ModoPregunta {
-        COMPLETA,
-        SIMPLE
-    }
-
-    private void mostrarPregunta(Question q, int index, ModoPregunta modo) {
-        DateTimeFormatter FECHA_FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        boolean detallado = (modo == ModoPregunta.COMPLETA);
-
-        // Título
-        if (index > 0) {
-            showMessage(
-                    CYAN + BOLD + "\n================== PREGUNTA " + index + " ==================" + RESET);
-        } else {
-            showMessage(
-                    CYAN + BOLD + "\n=============== DETALLES DE LA PREGUNTA ================" + RESET);
-        }
-
-        // Autor y temas
-        if (detallado) {
-            showMessage(PURPLE + BOLD + "AUTOR : " + RESET + q.getAuthor());
-            showMessage(PURPLE + BOLD + "TEMAS : " + RESET + String.join(", ", q.getTopics()));
-            showMessage(PURPLE + BOLD + "FECHA DE CREACIÓN : " + RESET + q.getCreationDate().format(FECHA_FORMATO));
-        }
-
-        // Enunciado
-        showMessage(
-                YELLOW + BOLD + "\nENUNCIADO: " + RESET + q.getStatement());
-
-        // Opciones
-        showMessage(BLUE + BOLD + "\nOPCIONES:" + RESET);
-        List<Option> opts = q.getOptions();
-
-        for (int i = 0; i < opts.size(); i++) {
-            Option option = opts.get(i);
-            char letter = (char) ('A' + i);
-
-            boolean correcta = option.isCorrect();
-
-            // Solo en modo detallado la opción correcta se ve en verde
-            String color = (detallado && correcta) ? GREEN + BOLD : RESET;
-
-            showMessage(" " + color + letter + ") " + option.getText() + RESET);
-        }
-
-        // Justificaciones solo en modo detallado
-        if (detallado) {
-            showMessage(PURPLE + BOLD + "\nJUSTIFICACIONES:" + RESET);
-            for (Option option : q.getOptions()) {
-                String color = option.isCorrect() ? GREEN : RESET;
-                showMessage(" " + color + "- " + option.getRationale() + RESET);
-            }
-        }
-
-        showMessage(
-                CYAN + BOLD + "\n================================================\n" + RESET);
     }
 
 }

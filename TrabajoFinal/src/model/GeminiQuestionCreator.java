@@ -11,16 +11,19 @@ import java.util.List;
 
 public class GeminiQuestionCreator implements QuestionCreator {
 
+    // Atributos
     private final String apiKey;
     private final String modelo;
     private final String questionCreatorDescription;
 
+    // Constructor
     public GeminiQuestionCreator(String apiKey, String modelo) {
         this.apiKey = apiKey;
         this.modelo = modelo;
         this.questionCreatorDescription = "Gemini Question Creator - Modelo: " + modelo;
     }
 
+    // Método para crear una pregunta sobre un tema dado usando Gemini
     @Override
     public Question createQuestion(String topic) throws QuestionCreatorException {
         try {
@@ -40,7 +43,7 @@ public class GeminiQuestionCreator implements QuestionCreator {
                 // Generamos el objeto directamente usando generateJson
                 QuestionDTO dto = genai.generateJson(prompt, schema, QuestionDTO.class);
 
-                // Convertimos DTO a Question real, pasando el tema para topics
+                // Convertimos DTO a Question real
                 return convertToQuestion(dto, topic);
             }
 
@@ -54,7 +57,7 @@ public class GeminiQuestionCreator implements QuestionCreator {
         return questionCreatorDescription;
     }
 
-    // Convierte DTO a Question usando modelo y topic
+    // Método para convertir DTO a Question real
     private Question convertToQuestion(QuestionDTO dto, String topic) {
         List<Option> opciones = new ArrayList<>();
         for (int i = 0; i < dto.options.size(); i++) {
@@ -72,7 +75,6 @@ public class GeminiQuestionCreator implements QuestionCreator {
         HashSet<String> topicsSet = new HashSet<>();
         topicsSet.add(topic);
 
-        // author = modelo usado, topics = tema
         return new Question(this.modelo, topicsSet, dto.statement, opciones);
     }
 }

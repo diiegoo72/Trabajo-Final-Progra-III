@@ -16,8 +16,7 @@ public class Question implements Serializable {
     private HashSet<String> topics;
     private String statement;
     private List<Option> options;
-    private LocalDateTime creationDate; 
-
+    private LocalDateTime creationDate;
 
     // Constructor
     public Question(String author, HashSet<String> topics, String statement,
@@ -30,7 +29,6 @@ public class Question implements Serializable {
         this.creationDate = LocalDateTime.now();
     }
 
-    
     // Getters y Setters
     public UUID getId() {
         return id;
@@ -40,48 +38,33 @@ public class Question implements Serializable {
         this.id = id;
     }
 
-
-
     public String getAuthor() {
         return author;
     }
-
-
 
     public void setAuthor(String author) {
         this.author = author;
     }
 
-
     public HashSet<String> getTopics() {
         return topics;
     }
-
-
 
     public void setTopics(HashSet<String> topics) {
         this.topics = topics;
     }
 
-
-
     public String getStatement() {
         return statement;
     }
-
-
 
     public void setStatement(String statement) {
         this.statement = statement;
     }
 
-
-
     public List<Option> getOptions() {
         return options;
     }
-
-
 
     public void setOptions(List<Option> options) {
         this.options = options;
@@ -95,25 +78,4 @@ public class Question implements Serializable {
         this.creationDate = creationDate;
     }
 
-
-    public boolean isCorrectOption(String respuesta) {
-        for (Option option : options) {
-            if (option.getText().equalsIgnoreCase(respuesta)) {
-                return option.isCorrect();
-            }
-        }
-        return false;
-    }
-
-
-    public String getRationaleForOption(String respuesta) {
-        for (Option option : options) {
-            if (option.getText().equalsIgnoreCase(respuesta)) {
-                return option.getRationale();
-            }
-        }
-        return "No rationale available.";
-    }
-
-    
 }

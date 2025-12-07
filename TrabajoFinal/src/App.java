@@ -13,9 +13,11 @@ import view.InteractiveView;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        
+        // Inicialización del repositorio (binario en este caso)
         IRepository repository = new BinaryRepository();
+        // Inicialización del manejador de backup (JSON en este caso)
         QuestionBackupIO backupHandler = new JSONQuestionBackupIO();
+        // Lista de creadores de preguntas basados en IA
         ArrayList<QuestionCreator> questionCreators = new ArrayList<>();
 
         // Comprobamos si se pasó el parámetro para crear un QuestionCreator
