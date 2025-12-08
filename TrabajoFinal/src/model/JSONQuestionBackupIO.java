@@ -16,7 +16,7 @@ import java.lang.reflect.Type;
 
 public class JSONQuestionBackupIO implements QuestionBackupIO {
 
-    Path ruta = Paths.get(System.getProperty("user.home"));
+    private Path ruta = Paths.get(System.getProperty("user.home"));
 
     // Método para establecer la ruta base donde se guardarán los archivos
     public void setRuta(String ruta) {

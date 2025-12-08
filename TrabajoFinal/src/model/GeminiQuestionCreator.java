@@ -2,6 +2,7 @@ package model;
 
 import es.usal.genai.GenAiConfig;
 import es.usal.genai.GenAiFacade;
+import es.usal.genai.GenAiFacade.GenAiException;
 import es.usal.genai.SimpleSchemas;
 import com.google.genai.types.Schema;
 
@@ -26,29 +27,36 @@ public class GeminiQuestionCreator implements QuestionCreator {
     // Método para crear una pregunta sobre un tema dado usando Gemini
     @Override
     public Question createQuestion(String topic) throws QuestionCreatorException {
+        // 1. Configurar Gemini
+        GenAiConfig config;
         try {
-            // Configuración de la SDK usando el modelo
-            GenAiConfig config = GenAiConfig.forGemini(modelo, apiKey);
+            config = GenAiConfig.forGemini(modelo, apiKey);
+        } catch (GenAiException e) {
+            throw new QuestionCreatorException("Error configurando Gemini: " + e.getMessage(), e);
+        }
 
-            try (GenAiFacade genai = new GenAiFacade(config)) {
-                // Prompt para generar la pregunta de 4 opciones
-                String prompt = "Crea una pregunta de tipo test sobre el tema: \"" + topic + "\". " +
-                        "Debe tener 4 opciones, solo una correcta y cada opción con su justificación. " +
-                        "Devuélvelo en JSON con esta estructura: { \"statement\": \"...\", " +
-                        "\"options\": [ { \"text\": \"...\", \"correct\": true/false, \"rationale\": \"...\" }, ... ] }";
+        // 2. Usar la SDK para generar la pregunta
+        try (GenAiFacade genai = new GenAiFacade(config)) {
 
-                // Creamos el esquema a partir de nuestro DTO
-                Schema schema = SimpleSchemas.from(QuestionDTO.class);
+            String prompt = "Crea una pregunta de tipo test sobre el tema: \"" + topic + "\". " +
+                    "Debe tener 4 opciones, solo una correcta y cada opción con su justificación. " +
+                    "Devuélvelo en JSON con esta estructura: { \"statement\": \"...\", " +
+                    "\"options\": [ { \"text\": \"...\", \"correct\": true/false, \"rationale\": \"...\" }, ... ] }";
 
-                // Generamos el objeto directamente usando generateJson
-                QuestionDTO dto = genai.generateJson(prompt, schema, QuestionDTO.class);
+            Schema schema = SimpleSchemas.from(QuestionDTO.class);
+            QuestionDTO dto = genai.generateJson(prompt, schema, QuestionDTO.class);
 
-                // Convertimos DTO a Question real
-                return convertToQuestion(dto, topic);
+            if (dto == null) {
+                throw new QuestionCreatorException("Gemini devolvió una respuesta vacía.");
             }
 
+            return convertToQuestion(dto, topic);
+
+        } catch (GenAiException e) {
+            throw new QuestionCreatorException("Error generando la pregunta con Gemini: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new QuestionCreatorException("Error creando la pregunta con Gemini: " + e.getMessage(), e);
+            // Por si convertToQuestion explota o pasa algo inesperado
+            throw new QuestionCreatorException("Error procesando la pregunta: " + e.getMessage(), e);
         }
     }
 
