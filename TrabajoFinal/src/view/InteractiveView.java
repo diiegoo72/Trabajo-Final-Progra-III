@@ -153,7 +153,7 @@ public class InteractiveView extends BaseView {
             }
         }
 
-        showMessage(CYAN + BOLD + "\n================================================\n" + RESET);
+        showMessage(CYAN + BOLD + "================================================\n" + RESET);
     }
 
     // BANNERS DE LAS DISTINTAS SECCIONES
