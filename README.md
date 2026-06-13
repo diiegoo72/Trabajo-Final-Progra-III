@@ -1,30 +1,20 @@
 # Examinator 3000
 
-Aplicación de consola desarrollada en Java para gestionar bancos de preguntas tipo test, realizar simulacros de examen, importar/exportar preguntas en JSON y generar preguntas automáticamente mediante IA.
+Java console application for managing multiple-choice question banks and running exam simulations.
 
-## Funcionalidades
+This project was developed as the final assignment for the Programming III course at Universidad de Salamanca.
 
-- CRUD de preguntas tipo test.
-- Listado por fecha de creación.
-- Filtrado por tema.
-- Importación/exportación en JSON.
-- Persistencia mediante serialización binaria.
-- Modo examen con corrección automática.
-- Feedback inmediato por respuesta.
-- Generación automática de preguntas mediante Gemini.
+## Features
 
-## Tecnologías
+- Question CRUD
+- Topic-based filtering
+- JSON import/export
+- Binary persistence
+- Exam simulation mode
+- Automatic grading
+- AI-based question generation with Gemini
+- MVC architecture
 
-- Java 21
-- MVC
-- JSON
-- Serialización binaria
-- Gemini API
+## Evolution
 
-## Contexto
-
-Proyecto final de la asignatura Programación III del Doble Grado en Ingeniería Informática y Estadística, Universidad de Salamanca.
-
-## Evolución
-
-Este proyecto servirá como base conceptual para ExamForge, una versión web profesional con Spring Boot, PostgreSQL, API REST, autenticación, analíticas y despliegue.
+This project is the conceptual predecessor of **Examinit**, a new web-based version built with Spring Boot, PostgreSQL and modern backend practices.
